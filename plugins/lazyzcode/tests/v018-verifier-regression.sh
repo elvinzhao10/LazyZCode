@@ -211,7 +211,11 @@ def assert_scoped_policy(root, records):
     for label in sorted(expected - {readiness, package_boundary}):
         require(by_label[label] == "90", f"{label} expected 90, observed {by_label[label]}")
     by_all_labels = {label: timeout for label, timeout in records}
-    require(by_all_labels.get("node_tests") == "90", "aggregate omitted automatic Node tests")
+    # The node phase carries a scoped floor (3x the generic budget) so the
+    # v1.3.1 suite growth cannot starve it; python keeps the generic budget.
+    node_phase = by_all_labels.get("node_tests")
+    require(node_phase is not None and node_phase.isdigit() and int(node_phase) >= 90,
+            "aggregate omitted automatic Node tests")
     require(by_all_labels.get("python_tests") == "90", "aggregate omitted automatic Python tests")
     return len(expected) - 2
 
