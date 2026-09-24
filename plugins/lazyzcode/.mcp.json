@@ -1,0 +1,76 @@
+{
+  "mcpServers": {
+    "run-ledger": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/run-ledger/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    },
+    "verification": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/verification/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    },
+    "status-dashboard": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/status-dashboard/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    },
+    "context-graph": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/context-graph/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    },
+    "code-intel": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/code-intel/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    },
+    "docs": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/docs/server.sh"],
+      "env": {
+        "CWD": "${CLAUDE_PROJECT_DIR}",
+        "CLAUDE_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}",
+        "LAZYZCODE_MCP_MODE": "${user_config.mcp_mode}",
+        "LAZYZCODE_DEPENDENCY_ROOT": "${CLAUDE_PLUGIN_DATA}/dependencies",
+        "LAZYZCODE_CACHE_ROOT": "${CLAUDE_PLUGIN_DATA}/cache"
+      }
+    }
+  }
+}

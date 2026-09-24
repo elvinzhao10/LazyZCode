@@ -1,0 +1,7 @@
+# lazyzcode security-check allowlist
+#
+# Format: "<plugin-root-relative path> <pattern label>"
+# Only exact (path, label) pairs are suppressed; they are reported in the
+# "allowlisted" array of the scan output and never fail the scan. Entries must
+# be limited to redaction/fixture tests carrying obviously synthetic tokens.
+tests/hook-lifecycle-pipeline.test.js sk-* (API key)

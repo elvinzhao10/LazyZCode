@@ -1,0 +1,122 @@
+'use strict';
+
+const { LifecycleError } = require('./errors');
+const { CURRENT_VERSION } = require('./version');
+
+const COMMANDS = new Set(['onboard', 'update', 'status', 'offboard', 'recover-bootstrap-lock']);
+const VALUE_FLAGS = new Set([
+  '--install-root', '--project', '--source', '--confirm-revision', '--observation-receipt', '--host', '--host-build', '--host-session',
+]);
+const BOOLEAN_FLAGS = new Set(['--json', '--yes']);
+const ROUTE_FLAG = '--route';
+
+function usage() {
+  return `LazyZCode durable lifecycle v${CURRENT_VERSION}
+
+Usage: node scripts/lazyzcode-lifecycle.js <command> [options]
+
+Commands:
+  onboard   Verify and install an official LazyZCode release
+  update    Verify and promote an official LazyZCode revision
+  status    Inspect durable package and host-readiness state
+  offboard  Plan or remove exact receipt-owned LazyZCode state
+  recover-bootstrap-lock  Recover a verified stale sibling bootstrap lock
+
+Common options:
+  --install-root <absolute-path>
+  --project <absolute-path>
+  --json
+
+Status options:
+  --host <zcode>
+  --route <zcode-marketplace|manual-skills-mcp-fallback>
+  --observation-receipt <absolute-path>
+  --host-build <current-zcode-build>
+  --host-session <current-zcode-session>
+
+Onboard/update options:
+  --source <canonical-official-url>
+  --confirm-revision <full-sha>
+
+Offboard/recover-bootstrap-lock option:
+  --yes
+`;
+}
+
+function parseArgs(argv) {
+  if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) return { help: true };
+  const command = argv[0];
+  if (!COMMANDS.has(command)) throw new LifecycleError('INVALID_COMMAND', `unknown lifecycle command: ${command}`);
+  const options = { command, json: false, routes: [], yes: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (BOOLEAN_FLAGS.has(flag)) {
+      const key = flag.slice(2);
+      if (options[key]) throw new LifecycleError('INVALID_ARGUMENT', `${flag} may be provided only once`);
+      options[key] = true;
+      continue;
+    }
+    if (flag === ROUTE_FLAG) {
+      const route = argv[index + 1];
+      if (!route || route.startsWith('--')) throw new LifecycleError('INVALID_ARGUMENT', '--route requires a value');
+      if (!['zcode-marketplace', 'manual-skills-mcp-fallback'].includes(route)) {
+        throw new LifecycleError('INVALID_ARGUMENT', `unsupported host route: ${route}`);
+      }
+      if (options.routes.includes(route)) throw new LifecycleError('INVALID_ARGUMENT', '--route may not repeat a route');
+      options.routes.push(route);
+      index += 1;
+      continue;
+    }
+    if (!VALUE_FLAGS.has(flag)) throw new LifecycleError('INVALID_ARGUMENT', `unknown option: ${flag}`);
+    const value = argv[index + 1];
+    if (!value || value.startsWith('--')) throw new LifecycleError('INVALID_ARGUMENT', `${flag} requires a value`);
+    const key = flag.slice(2)
+      .replace('-revision', 'Revision')
+      .replace('-receipt', 'Receipt')
+      .replace('-root', 'Root')
+      .replace('-build', 'Build')
+      .replace('-session', 'Session');
+    if (options[key] !== undefined) throw new LifecycleError('INVALID_ARGUMENT', `${flag} may be provided only once`);
+    options[key] = value;
+    index += 1;
+  }
+  if ((options.source || options.confirmRevision) && !['onboard', 'update'].includes(command)) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--source and --confirm-revision apply only to onboard or update');
+  }
+  if (options.project === undefined) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--project is required');
+  }
+  if (options.confirmRevision && command !== 'update') {
+    throw new LifecycleError('INVALID_ARGUMENT', '--confirm-revision applies only to update');
+  }
+  if ((options.routes.length > 0 || options.observationReceipt || options.hostBuild || options.hostSession) && command !== 'status') {
+    throw new LifecycleError('INVALID_ARGUMENT', '--host, --route, and --observation-receipt apply only to status');
+  }
+  if (options.host && options.host !== 'zcode') {
+    throw new LifecycleError('INVALID_ARGUMENT', `unsupported marketplace host: ${options.host}`);
+  }
+  if (options.host && command !== 'status') {
+    throw new LifecycleError('INVALID_ARGUMENT', '--host applies only to status');
+  }
+  if (options.observationReceipt && options.routes.length === 0 && !options.host) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--observation-receipt requires --host or one selected --route');
+  }
+  if ((options.hostBuild || options.hostSession) && !options.observationReceipt) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--host-build and --host-session require --observation-receipt');
+  }
+  if (options.observationReceipt && (options.hostBuild === undefined) !== (options.hostSession === undefined)) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--host-build and --host-session must be provided together');
+  }
+  if (options.hostBuild && options.host !== 'zcode') {
+    throw new LifecycleError('INVALID_ARGUMENT', '--host-build and --host-session apply only to ZCode marketplace status');
+  }
+  if (options.yes && !['offboard', 'recover-bootstrap-lock'].includes(command)) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--yes applies only to offboard or recover-bootstrap-lock');
+  }
+  if (['onboard', 'update'].includes(command) && !options.source) {
+    throw new LifecycleError('INVALID_ARGUMENT', '--source is required for onboard and update');
+  }
+  return options;
+}
+
+module.exports = { parseArgs, usage };

@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+set -euo pipefail
+die() {
+  printf 'LazyZCode MCP launcher: %s\n' "$1" >&2
+  exit 2
+}
+
+SOURCE_PATH="${BASH_SOURCE[0]}"
+case "$SOURCE_PATH" in
+  /*) ;;
+  *) SOURCE_PATH="$PWD/$SOURCE_PATH" ;;
+esac
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$SOURCE_PATH")" 2>/dev/null && pwd -P)" || die "cannot locate launcher"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd -P -- "$SCRIPT_DIR/../.." 2>/dev/null && pwd -P)}"
+case "$PLUGIN_ROOT" in
+  /*) ;;
+  *) die "plugin root must be absolute: $PLUGIN_ROOT" ;;
+esac
+[ -d "$PLUGIN_ROOT" ] || die "plugin root not found: $PLUGIN_ROOT"
+source "$PLUGIN_ROOT/mcp/profile-gate.sh"
+if ! lazyzcode_require_mcp_profile "status-dashboard"; then
+  # Deferred or gated-off profile: defer quietly so ZCode MCP startup never breaks.
+  # The gate already wrote MCP_PROFILE_DEFERRED / MCP_PROFILE_INVALID diagnostics to stderr.
+  exit 0
+fi
+RAW_CWD="${CWD:-${CLAUDE_PROJECT_DIR:-}}"
+[ -n "$RAW_CWD" ] || die "project CWD is required: set CWD or CLAUDE_PROJECT_DIR"
+case "$RAW_CWD" in
+  /*) ;;
+  *) RAW_CWD="$PWD/$RAW_CWD" ;;
+esac
+[ -d "$RAW_CWD" ] && [ ! -L "$RAW_CWD" ] || die "project CWD is unavailable: $RAW_CWD"
+CWD="$(cd -P -- "$RAW_CWD" 2>/dev/null && pwd -P)" || die "cannot resolve project CWD: $RAW_CWD"
+export CWD
+source "$PLUGIN_ROOT/scripts/state/state-paths.sh"
+NOTIFICATION=0
+
+request_kind() {
+  python3 -c '
+import json, math, sys
+try:
+    request = json.load(sys.stdin)
+except json.JSONDecodeError:
+    print("parse")
+    raise SystemExit
+valid_id = lambda value: value is None or isinstance(value, str) or (isinstance(value, int) and not isinstance(value, bool)) or (isinstance(value, float) and math.isfinite(value))
+if not isinstance(request, dict) or request.get("jsonrpc") != "2.0" or not isinstance(request.get("method"), str) or request["method"].startswith("rpc.") or ("id" in request and not valid_id(request["id"])):
+    print("invalid")
+elif "id" not in request:
+    print("notification")
+else:
+    print("request")
+' <<< "$INPUT"
+}
+
+protocol_error() {
+  python3 - "$1" "$2" <<'PYEOF'
+import json
+import sys
+
+print(json.dumps({"jsonrpc": "2.0", "id": None, "error": {"code": int(sys.argv[1]), "message": sys.argv[2]}}))
+PYEOF
+}
+reply() {
+  [ "$NOTIFICATION" = 1 ] && return 0
+  python3 - "$ID_JSON" "$1" <<'PYEOF'
+import json
+import sys
+
+print(json.dumps({"jsonrpc": "2.0", "id": json.loads(sys.argv[1]), "result": json.loads(sys.argv[2])}))
+PYEOF
+}
+err() {
+  [ "$NOTIFICATION" = 1 ] && return 0
+  local code="-32603"
+  if [ "$1" = "-32602" ]; then
+    code="$1"
+    shift
+  fi
+  python3 - "$ID_JSON" "$code" "$1" <<'PYEOF'
+import json
+import sys
+
+print(json.dumps({"jsonrpc": "2.0", "id": json.loads(sys.argv[1]), "error": {"code": int(sys.argv[2]), "message": sys.argv[3]}}))
+PYEOF
+}
+param_raw() { python3 -c "import sys,json; d=json.load(sys.stdin); p=d.get('params',{}); a=p.get('arguments',p); print(a.get('$1',''))" 2>/dev/null <<<"$INPUT"; }
+resolve_run() {
+  local rid="${1:-$(CWD="$CWD" bash "$PLUGIN_ROOT/scripts/state/latest-run.sh" 2>/dev/null || echo "")}"
+  [ -n "$rid" ] || return 1
+  state_require_run_dir "$CWD" "$rid" || return 1
+  state_recover_transaction "$STATE_RUN_DIR" || return 1
+  state_require_existing_run_file "$STATE_RUN_DIR/state.json" "state file" || return 1
+  echo "$STATE_RUN_DIR/state.json"
+}
+
+while IFS= read -r INPUT || [ -n "$INPUT" ]; do
+case "$(request_kind)" in
+  parse) protocol_error -32700 "Parse error"; continue ;;
+  invalid) protocol_error -32600 "Invalid Request"; continue ;;
+  notification) NOTIFICATION=1 ;;
+  request) NOTIFICATION=0 ;;
+esac
+METHOD=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('method',''))" 2>/dev/null <<<"$INPUT" || echo "")
+ID_JSON=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d.get('id',None)))" 2>/dev/null <<<"$INPUT" || echo "null")
+
+if [ "$METHOD" = "tools/call" ]; then
+    if ! METHOD=$(python3 -c "import json,sys; params=json.load(sys.stdin).get('params'); assert isinstance(params, dict); assert isinstance(params.get('name'), str); assert isinstance(params.get('arguments', {}), dict); print(params['name'])" 2>/dev/null <<<"$INPUT"); then
+        err -32602 "tools/call requires object params with string name and object arguments"
+        continue
+    fi
+fi
+
+case "$METHOD" in
+  initialize)
+    reply '{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"status-dashboard","version":"1.3.1"}}'
+    ;;
+  tools/list)
+    reply '{"tools":[
+      {"name":"show_run_status","description":"Show current run status","inputSchema":{"type":"object","properties":{"run_id":{"type":"string"}}}},
+      {"name":"show_task_graph","description":"Show task dependency graph","inputSchema":{"type":"object","properties":{"run_id":{"type":"string"}},"required":["run_id"]}},
+      {"name":"show_verification_matrix","description":"Show verification gate results","inputSchema":{"type":"object","properties":{"run_id":{"type":"string"}},"required":["run_id"]}},
+      {"name":"show_pending_approvals","description":"Show pending human gates and reviews","inputSchema":{"type":"object","properties":{"run_id":{"type":"string"}}}}
+    ]}'
+    ;;
+  show_run_status)
+    SF=$(resolve_run "$(param_raw "run_id")") || { err "invalid or unsafe run_id"; continue; }
+    RESULT=$(PLUGIN_ROOT="$PLUGIN_ROOT" python3 - "$SF" <<'PYEOF'
+import json,sys,os,subprocess
+with open(sys.argv[1]) as f: s=json.load(f); t=s.get('tasks',[]); d=sum(1 for x in t if x.get('status')=='done')
+g=s.get('verification_gates',[]); gd=sum(1 for x in g if x.get('status')=='passed')
+plugin_root=os.environ['PLUGIN_ROOT']
+project_root=os.environ['CWD']
+authority=os.path.relpath(os.path.join(os.path.dirname(sys.argv[1]), 'completion-authority.json'), project_root)
+version=json.load(open(os.path.join(plugin_root, 'tooling', 'package.json')))['version']
+completed=subprocess.run(['node', os.path.join(plugin_root, 'scripts', 'completion-assessment.js'), '--root', project_root, '--authority', authority, '--package-version', version, '--remediation', 'show_run_status'], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+assessment=json.loads(completed.stdout)
+r={'status':s.get('status',''),'persisted_status':s.get('status',''),'completion_assessment':assessment,'objective':s.get('objective',''),'tasks_done':d,'tasks_total':len(t),'verification_gates':f'{gd}/{len(g)}','review_status':s.get('review_status',''),'iteration_count':s.get('iteration_count',0),'last_checkpoint':s.get('last_checkpoint',''),'run_id':s.get('run_id','')}
+# v1.0.3 W3.5: append adaptive explanation when an adaptive block is present.
+adaptive = s.get('adaptive')
+if isinstance(adaptive, dict):
+    tooling_dir = os.path.join(os.environ.get('PLUGIN_ROOT',''), 'tooling')
+    if tooling_dir not in sys.path:
+        sys.path.insert(0, tooling_dir)
+    try:
+        from lazyzcode_adaptive_explanation import format_adaptive_explanation
+        r['adaptive_explanation'] = format_adaptive_explanation(s)
+        r['adaptive_mode'] = adaptive.get('mode','')
+        r['adaptive_escalation_count'] = adaptive.get('escalationCount', 0)
+    except Exception as e:
+        r['adaptive_explanation_error'] = str(e)
+print(json.dumps(r))
+PYEOF
+)
+    reply "$RESULT"
+    ;;
+  show_task_graph)
+    SF=$(resolve_run "$(param_raw "run_id")") || { err "invalid or unsafe run_id"; continue; }
+    RESULT=$(python3 - "$SF" <<'PYEOF'
+import json,sys
+with open(sys.argv[1]) as f: s=json.load(f); t=s.get('tasks',[]); n=[{'id':x.get('id',''),'title':x.get('title',''),'status':x.get('status','')} for x in t]; e=[{'from':d,'to':x.get('id','')} for x in t for d in x.get('depends_on',[])]; print(json.dumps({'nodes':n,'edges':e}))
+PYEOF
+)
+    reply "$RESULT"
+    ;;
+  show_verification_matrix)
+    SF=$(resolve_run "$(param_raw "run_id")") || { err "invalid or unsafe run_id"; continue; }
+    RESULT=$(python3 - "$SF" <<'PYEOF'
+import json,sys
+with open(sys.argv[1]) as f: s=json.load(f); g=[{'name':x.get('name',''),'status':x.get('status',''),'result':x.get('result','')} for x in s.get('verification_gates',[])]; print(json.dumps(g))
+PYEOF
+)
+    reply "$RESULT"
+    ;;
+  show_pending_approvals)
+    SF=$(resolve_run "$(param_raw "run_id")") || { err "invalid or unsafe run_id"; continue; }
+    RESULT=$(python3 - "$SF" <<'PYEOF'
+import json,sys
+with open(sys.argv[1]) as f: s=json.load(f); p=[g for g in s.get('human_gates',[]) if g.get('status','')=='pending']
+if s.get('review_status','')=='pending': p.append({'name':'review','status':'pending','result':''})
+print(json.dumps(p))
+PYEOF
+)
+    reply "$RESULT"
+    ;;
+  *)
+    err "unknown method: $METHOD"
+    ;;
+esac
+done

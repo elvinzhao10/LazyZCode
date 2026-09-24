@@ -1,0 +1,144 @@
+{
+  "formerDisplayNames": [
+    {
+      "path": "RELEASE_NOTES.md",
+      "text": "LazyQoder",
+      "count": 4,
+      "classification": "old-release-note",
+      "reason": "Migration and upgrade sections reference the source product this port was bootstrapped from."
+    },
+    {
+      "path": "RELEASE_NOTES.md",
+      "text": "Qoder",
+      "count": 1,
+      "classification": "old-release-note",
+      "reason": "Host capability matrix lineage note describing the earlier host route."
+    },
+    {
+      "path": "CHANGELOG.md",
+      "text": "LazyQoder",
+      "count": 4,
+      "classification": "old-release-note",
+      "reason": "Historical changelog entries for the family lineage are immutable history."
+    },
+    {
+      "path": "CHANGELOG.md",
+      "text": "Qoder",
+      "count": 1,
+      "classification": "old-release-note",
+      "reason": "Historical changelog host naming is immutable history."
+    },
+    {
+      "path": "AGENT_ATTRIBUTION.md",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "attribution",
+      "reason": "Attribution of the implementation lineage is kept verbatim."
+    },
+    {
+      "path": "AGENT_ATTRIBUTION.md",
+      "text": "Qoder",
+      "count": 1,
+      "classification": "attribution",
+      "reason": "Attribution of the earlier host implementation is kept verbatim."
+    },
+    {
+      "path": "README.md",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "source-identity",
+      "reason": "Shared-semantics byte-identity statement lists the family members."
+    },
+    {
+      "path": "docs/10-host-capability-matrix.md",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "source-identity",
+      "reason": "Host divergence table names the sibling package it was ported from."
+    },
+    {
+      "path": "plugins/lazyzcode/contracts/lazyseries-shared-semantics.v1.json",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "stable-machine-id",
+      "reason": "Family-shared contract lists its canonical member repositories; byte-identical across the family."
+    },
+    {
+      "path": "plugins/lazyzcode/contracts/fixtures/lazyseries-v130-scenarios.v1.json",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "immutable-historical-fixture",
+      "reason": "Family-shared canonical scenario fixture; byte-identical across the family."
+    },
+    {
+      "path": "NOTICE",
+      "text": "LazyQoder",
+      "count": 3,
+      "classification": "attribution",
+      "reason": "Legal attribution keeps the upstream product lineage verbatim."
+    },
+    {
+      "path": "NOTICE",
+      "text": "Qoder",
+      "count": 2,
+      "classification": "attribution",
+      "reason": "Legal attribution keeps the upstream host lineage verbatim."
+    },
+    {
+      "path": "plugins/lazyzcode/NOTICE",
+      "text": "LazyQoder",
+      "count": 3,
+      "classification": "attribution",
+      "reason": "Legal attribution keeps the upstream product lineage verbatim."
+    },
+    {
+      "path": "plugins/lazyzcode/NOTICE",
+      "text": "Qoder",
+      "count": 2,
+      "classification": "attribution",
+      "reason": "Legal attribution keeps the upstream host lineage verbatim."
+    },
+    {
+      "path": ".build-conventions.md",
+      "text": "LazyQoder",
+      "count": 4,
+      "classification": "source-identity",
+      "reason": "Build conventions document the rename map from the source product; internal tooling doc, never shipped."
+    },
+    {
+      "path": ".build-conventions.md",
+      "text": "QoderCLI",
+      "count": 1,
+      "classification": "source-identity",
+      "reason": "Build conventions document the retired host CLI mapping."
+    },
+    {
+      "path": ".build-conventions.md",
+      "text": "Qoder",
+      "count": 2,
+      "classification": "source-identity",
+      "reason": "Build conventions document the host display-name mapping."
+    },
+    {
+      "path": ".build-conventions.md",
+      "text": "LazyCode",
+      "count": 1,
+      "classification": "old-note",
+      "reason": "Build conventions record the retired internal codename so regressions are detectable."
+    }
+  ],
+  "stableIdentityFiles": [
+    {
+      "path": "plugins/lazyzcode/contracts/marketplace-route-contract.v1.json",
+      "ids": {
+        "zcode-marketplace": 2,
+        "manual-skills-mcp-fallback": 1,
+        "lazyzcode@lazyzcode": 1
+      }
+    }
+  ],
+  "currentCliPages": [
+    "docs/reference/zcode-integration.md",
+    "docs/reference/host-routes.md"
+  ]
+}

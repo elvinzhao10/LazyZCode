@@ -1,0 +1,496 @@
+#!/bin/bash
+# lazyzcode-verify.sh — Master verification runner (v1.3.1)
+#
+# Runs all health-check scripts in sequence and emits a compact JSON summary.
+# Exit code 0 when all_pass is true; exit code 1 otherwise.
+#
+# Usage: ./scripts/lazyzcode-verify.sh
+# Env:   CLAUDE_PLUGIN_ROOT (if installed), otherwise defaults to script-relative plugin root.
+
+set -euo pipefail
+
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+else
+    PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+SCRIPTS_DIR="${PLUGIN_ROOT}/scripts"
+RUNNER="${SCRIPTS_DIR}/lazyzcode-bounded-run.py"
+PROJECT_ROOT="$(cd "${PLUGIN_ROOT}/.." && pwd)"
+export CLAUDE_PLUGIN_ROOT="${PLUGIN_ROOT}"
+export CWD="${CWD:-${PROJECT_ROOT}}"
+export PYTHONDONTWRITEBYTECODE=1
+export NODE_PATH="${SIX_HOST_PARITY_NODE_MODULES:-${PLUGIN_ROOT}/tooling/node_modules}"
+ALL_PASS=true
+DOCTOR_RESULT="skipped"
+SMOKE_RESULT="skipped"
+DOCS_RESULT="skipped"
+SECURITY_RESULT="skipped"
+MCP_RESULT="skipped"
+HOOK_RESULT="skipped"
+LOAD_RESULT="skipped"
+CONTRACT_RESULT="skipped"
+AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+AUTOMATIC_TOOLING_CONTRACT_PARITY_RESULT="not_applicable"
+REGRESSION_INVENTORY_RESULT="fail"
+NODE_TESTS_RESULT="fail"
+PYTHON_TESTS_RESULT="fail"
+REGRESSION_DEPTH="${LAZYZCODE_VERIFY_REGRESSION_DEPTH:-0}"
+VERIFY_TIMEOUT="${LAZYZCODE_VERIFY_TIMEOUT_SECONDS:-90}"
+NODE_TEST_CONCURRENCY="${LAZYZCODE_NODE_TEST_CONCURRENCY:-2}"
+READINESS_REGRESSION_TIMEOUT=900
+PACKAGE_BOUNDARY_REGRESSION_TIMEOUT=180
+VERIFY_SUITE="${LAZYZCODE_VERIFY_SUITE:-all}"
+PYTHON_REQUEST="${LAZYZCODE_PYTHON:-}"
+if [ -z "$PYTHON_REQUEST" ]; then
+    PYTHON_REQUEST="python3"
+    _pv="$(command -v python3 >/dev/null 2>&1 && python3 -c 'import sys; print("%d%02d" % sys.version_info[:2])' 2>/dev/null || true)"
+    if [ -z "$_pv" ] || [ "$_pv" -lt 310 ]; then
+        for _cand in python3.13 python3.12 python3.11 python3.10; do
+            command -v "$_cand" >/dev/null 2>&1 || continue
+            _cv="$("$_cand" -c 'import sys; print("%d%02d" % sys.version_info[:2])' 2>/dev/null || true)"
+            if [ -n "$_cv" ] && [ "$_cv" -ge 310 ]; then PYTHON_REQUEST="$_cand"; break; fi
+        done
+    fi
+fi
+export LAZYZCODE_PYTHON="$PYTHON_REQUEST"
+if ! PYTHON_BIN="$(command -v -- "$PYTHON_REQUEST" 2>/dev/null)" \
+    || [ ! -f "$PYTHON_BIN" ] \
+    || [ ! -x "$PYTHON_BIN" ]; then
+    printf 'ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.\n' >&2
+    exit 2
+fi
+PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(sys.version_info[0], sys.version_info[1])' 2>/dev/null || true)"
+read -r PYTHON_MAJOR PYTHON_MINOR _ <<<"$PYTHON_VERSION"
+
+if ! [[ "$PYTHON_MAJOR" =~ ^[0-9]+$ && "$PYTHON_MINOR" =~ ^[0-9]+$ ]] \
+    || [ "$PYTHON_MAJOR" -lt 3 ] \
+    || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 10 ]; }; then
+    printf 'ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.\n' >&2
+    exit 2
+fi
+
+if ! [[ "$REGRESSION_DEPTH" =~ ^[0-9]+$ ]]; then
+    printf 'ERROR: LAZYZCODE_VERIFY_REGRESSION_DEPTH must be a non-negative integer\n' >&2
+    exit 2
+fi
+if ! [[ "$VERIFY_TIMEOUT" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'ERROR: LAZYZCODE_VERIFY_TIMEOUT_SECONDS must be a positive integer\n' >&2
+    exit 2
+fi
+if ! [[ "$NODE_TEST_CONCURRENCY" =~ ^[1-4]$ ]]; then
+    printf 'ERROR: LAZYZCODE_NODE_TEST_CONCURRENCY must be an integer from 1 through 4\n' >&2
+    exit 2
+fi
+if [[ "$VERIFY_SUITE" != "all" && "$VERIFY_SUITE" != "core" && "$VERIFY_SUITE" != "lifecycle" ]]; then
+    printf 'ERROR: LAZYZCODE_VERIFY_SUITE must be all, core, or lifecycle\n' >&2
+    exit 2
+fi
+
+PYTHON_SHIM_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lazyzcode-python.XXXXXX")"
+cleanup_python_shim() {
+    rm -rf "$PYTHON_SHIM_DIR"
+}
+trap cleanup_python_shim EXIT
+export LAZYZCODE_PYTHON="$PYTHON_BIN"
+printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'exec "${LAZYZCODE_PYTHON:?}" "$@"' >"$PYTHON_SHIM_DIR/python3"
+chmod 700 "$PYTHON_SHIM_DIR/python3"
+if [ ! -f "$PYTHON_SHIM_DIR/python3" ] || [ -L "$PYTHON_SHIM_DIR/python3" ]; then
+    printf 'ERROR: LazyZCode could not prepare the selected Python interpreter.\n' >&2
+    exit 2
+fi
+PATH="$PYTHON_SHIM_DIR:$PATH"
+export PATH
+
+CHECK_DETAILS="{}"
+record_check() {
+    local name="$1" result_file="$2"
+    if [ ! -s "$result_file" ]; then
+        printf '{"status": "unavailable", "reason": "missing_result_file"}\n' >"$result_file"
+    fi
+    CHECK_DETAILS="$("$PYTHON_BIN" - "$CHECK_DETAILS" "$name" "$result_file" <<'PY'
+import json
+import sys
+details, name, path = sys.argv[1:]
+with open(path, encoding="utf-8") as handle:
+    result = json.load(handle)
+payload = json.loads(details)
+payload[name] = {key: result[key] for key in ("status", "reason")}
+print(json.dumps(payload, separators=(",", ":")))
+PY
+)"
+}
+
+print_failure_tail() {
+    "$PYTHON_BIN" - "$1" <<'PY' >&2
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    result = json.load(handle)
+if result["tail"]:
+    print(result["tail"], end="" if result["tail"].endswith("\n") else "\n")
+PY
+}
+
+run_check() {
+    local name="$1" script="$2" result_var="$3" result_file
+    result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-verify-result.XXXXXX")"
+    if [ -x "$script" ]; then
+        if "$PYTHON_BIN" "$RUNNER" --label "$name" --timeout "$VERIFY_TIMEOUT" --result-file "$result_file" -- "$script"; then
+            eval "${result_var}=pass"
+        else
+            eval "${result_var}=fail"
+            ALL_PASS=false
+            print_failure_tail "$result_file"
+        fi
+    else
+        "$PYTHON_BIN" - "$result_file" <<'PY'
+import json
+import sys
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump({"status": "unavailable", "reason": "not_executable", "tail": ""}, handle)
+PY
+        printf 'FAIL: %s\n' "$name" >&2
+        eval "${result_var}=fail"
+        ALL_PASS=false
+    fi
+    record_check "$name" "$result_file"
+    rm -f "$result_file"
+}
+
+run_hook_pipeline_check() {
+    local name="$1" script="$2" result_var="$3"
+    local hook_root=""
+    if [ ! -x "$script" ]; then
+        # hook-pipeline is owned by the UI layer; tolerate absence with an explicit skip marker.
+        printf 'SKIP: %s (script not present; marked skipped-absent)\n' "$name" >&2
+        eval "${result_var}=skipped-absent"
+        local result_file
+        result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-verify-result.XXXXXX")"
+        "$PYTHON_BIN" - "$result_file" <<-'PY'
+import json
+import sys
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump({"status": "skipped-absent", "reason": "hook-pipeline script not present", "tail": ""}, handle)
+PY
+        record_check "$name" "$result_file"
+        rm -f "$result_file"
+        return
+    fi
+    hook_root=$(mktemp -d "${TMPDIR:-/tmp}/lazyzcode-hook.XXXXXX") || {
+        eval "${result_var}=fail"
+        ALL_PASS=false
+        return
+    }
+    local result_file
+    result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-verify-result.XXXXXX")"
+    if mkdir -p "${hook_root}/plugins" && ln -s "${PLUGIN_ROOT}" "${hook_root}/plugins/lazyzcode" 2>/dev/null; then
+        if CWD="${hook_root}" CLAUDE_PLUGIN_ROOT="${PLUGIN_ROOT}" "$PYTHON_BIN" "$RUNNER" --label "$name" --timeout "$VERIFY_TIMEOUT" --result-file "$result_file" -- "$script"; then
+            eval "${result_var}=pass"
+        else
+            eval "${result_var}=fail"
+            ALL_PASS=false
+        fi
+    else
+        eval "${result_var}=fail"
+        ALL_PASS=false
+    fi
+    record_check "$name" "$result_file"
+    rm -f "$result_file"
+    rm -rf "${hook_root}"
+}
+
+run_isolated_test() {
+    local next_depth=$((REGRESSION_DEPTH + 1))
+    local result_file status test_timeout="$2"
+    result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-regression-result.XXXXXX")"
+    if LAZYZCODE_VERIFY_SUITE=all LAZYZCODE_VERIFY_REGRESSION_DEPTH="$next_depth" "$PYTHON_BIN" "$RUNNER" --label "regression:$(basename "$1")" --timeout "$test_timeout" --result-file "$result_file" -- bash "$1"; then
+        status=0
+    else
+        status=$?
+        print_failure_tail "$result_file"
+    fi
+    rm -f "$result_file"
+    return "$status"
+}
+
+run_regression_inventory() {
+    local test_name test_path test_timeout candidate inventory_failed=false
+    local tests_dir="${PLUGIN_ROOT}/tests"
+    # The normal release gate owns every package-local *-regression.sh. The
+    # explicit-root parity checks intentionally remain release-only.
+    local core_tests=(
+        "plan-format-compat.test.sh"
+        "v015-consumer-agents-regression.sh"
+        "v015-cwd-injection-regression.sh"
+        "v015-finalize-sections-regression.sh"
+        "v015-installed-root-loop-regression.sh"
+        "v015-mcp-path-boundary-regression.sh"
+        "v015-package-boundary-regression.sh"
+        "v015-persistent-mcp-regression.sh"
+        "v015-run-ledger-rpc-regression.sh"
+        "v015-security-regression.sh"
+        "v015-verification-mcp-boundary-regression.sh"
+        "v016-tooling-policy-regression.sh"
+        "v016-capability-broker-regression.sh"
+        "v016-capability-detector-regression.sh"
+        "v016-provider-lifecycle-regression.sh"
+        "v016-package-onboarding-regression.sh"
+        "v016-remote-capabilities-regression.sh"
+        "v016-lsp-regression.sh"
+        "v016-runtime-version-regression.sh"
+        "v019-local-first-version-regression.sh"
+        "v017-capability-readiness-contract-regression.sh"
+        "v017-capability-readiness-regression.sh"
+        "v017-mcp-params-regression.sh"
+        "v017-receipt-init-deep-regression.sh"
+        "v018-docs-ssrf-regression.sh"
+        "v018-init-deep-sibling-plugin-regression.sh"
+        "v018-secret-target-regression.sh"
+        "v018-coupled-work-contract-regression.sh"
+        "v018-post-tool-use-injection-regression.sh"
+        "v101-ci-suite-separation-regression.sh"
+        "v102-mcp-cwd-regression.sh"
+        "v102-readiness-claims-regression.sh"
+        "v102-zcode-package-preparation-regression.sh"
+        "v103-adaptive-contract-regression.sh"
+        "v110-bounded-process-regression.sh"
+        "v110-mcp-profiles-regression.sh"
+        "v110-state-task-schema-regression.sh"
+        "v110-zcode-observation-bundle-regression.sh"
+        "v120-python-preflight-regression.sh"
+        "v120-state-transaction-regression.sh"
+        "v2-capability-readiness-contract-regression.sh"
+        "v2-host-evidence-contract-regression.sh"
+    )
+    local lifecycle_tests=(
+        "v015-readiness-regression.sh"
+        "v016-tooling-lifecycle-regression.sh"
+        "v016-codegraph-regression.sh"
+        "v017-codegraph-fixture-cleanup-regression.sh"
+        "v017-codegraph-install-timeout-regression.sh"
+        "v017-codegraph-lifecycle-caller-survival-regression.sh"
+        "v017-codegraph-uninstall-pid-identity-regression.sh"
+        "v018-verifier-regression.sh"
+        "v103-lifecycle-entrypoint-regression.sh"
+    )
+    local standalone_tests=("${core_tests[@]}" "${lifecycle_tests[@]}")
+    local selected_tests=()
+    local paired_only_tests=(
+        "v016-automatic-tooling-contract-parity.sh"
+        "v017-capability-readiness-contract-parity.sh"
+        "v018-docs-manifest-parity.sh"
+        "v103-lifecycle-contract-parity.sh"
+        "v110-six-host-contract-parity.sh"
+        "v110-six-host-contract-parity-regression.sh"
+        "v110-paired-live-test-candidate.sh"
+        "v2-capability-readiness-contract-parity.sh"
+        "v2-host-evidence-contract-parity.sh"
+        "v2-lifecycle-contract-parity.sh"
+    )
+    local publication_tests=(
+        "publication-regression.sh"
+    )
+
+    contains_test() {
+        local needle="$1"
+        shift
+        for candidate in "$@"; do
+            [ "$candidate" = "$needle" ] && return 0
+        done
+        return 1
+    }
+
+    for test_name in "${standalone_tests[@]}" "${paired_only_tests[@]}" "${publication_tests[@]}"; do
+        test_path="${tests_dir}/${test_name}"
+        if [ ! -f "$test_path" ] || [ ! -s "$test_path" ] || ! bash -n "$test_path"; then
+            printf 'ERROR: classified regression is missing, empty, or invalid: %s\n' "$test_name" >&2
+            inventory_failed=true
+        fi
+    done
+
+    while IFS= read -r test_path; do
+        test_name="$(basename "$test_path")"
+        if contains_test "$test_name" "${standalone_tests[@]}"; then
+            :
+        elif contains_test "$test_name" "${paired_only_tests[@]}"; then
+            :
+        elif contains_test "$test_name" "${publication_tests[@]}"; then
+            :
+        else
+            printf 'ERROR: unclassified package-local regression: %s\n' "$test_name" >&2
+            inventory_failed=true
+        fi
+    done < <(find "$tests_dir" -maxdepth 1 -type f -name '*-regression.sh' -print | LC_ALL=C sort)
+
+    for test_name in "${standalone_tests[@]}"; do
+        if contains_test "$test_name" "${paired_only_tests[@]}"; then
+            printf 'ERROR: regression has conflicting classifications: %s\n' "$test_name" >&2
+            inventory_failed=true
+        fi
+    done
+
+    for test_name in "${publication_tests[@]}"; do
+        if contains_test "$test_name" "${standalone_tests[@]}" || contains_test "$test_name" "${paired_only_tests[@]}"; then
+            printf 'ERROR: regression has conflicting classifications: %s\n' "$test_name" >&2
+            inventory_failed=true
+        fi
+    done
+
+    if [ "$inventory_failed" = true ]; then
+        REGRESSION_INVENTORY_RESULT="fail"
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+        ALL_PASS=false
+        return
+    fi
+    REGRESSION_INVENTORY_RESULT="pass"
+
+    if [ "$REGRESSION_DEPTH" -gt 0 ]; then
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="skipped-nested"
+        return
+    fi
+
+    case "$VERIFY_SUITE" in
+        all) selected_tests=("${standalone_tests[@]}") ;;
+        core) selected_tests=("${core_tests[@]}") ;;
+        lifecycle) selected_tests=("${lifecycle_tests[@]}") ;;
+    esac
+
+    for test_name in "${selected_tests[@]}"; do
+        test_path="${tests_dir}/${test_name}"
+        test_timeout="$VERIFY_TIMEOUT"
+        if [ "$test_name" = "v015-readiness-regression.sh" ] \
+            && [ "$READINESS_REGRESSION_TIMEOUT" -gt "$test_timeout" ]; then
+            test_timeout="$READINESS_REGRESSION_TIMEOUT"
+        fi
+        if [ "$test_name" = "v015-package-boundary-regression.sh" ] \
+            && [ "$PACKAGE_BOUNDARY_REGRESSION_TIMEOUT" -gt "$test_timeout" ]; then
+            test_timeout="$PACKAGE_BOUNDARY_REGRESSION_TIMEOUT"
+        fi
+        if ! run_isolated_test "$test_path" "$test_timeout"; then
+            printf 'FAIL: standalone regression failed: %s\n' "$test_name" >&2
+            AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+            ALL_PASS=false
+        fi
+    done
+
+    if [ "$ALL_PASS" = true ]; then
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="pass"
+    fi
+}
+
+run_language_tests() {
+    local result_file status test_path
+    local node_test_paths=()
+    if [ "$REGRESSION_DEPTH" -gt 0 ]; then
+        NODE_TESTS_RESULT="skipped-nested"
+        PYTHON_TESTS_RESULT="skipped-nested"
+        return
+    fi
+    if [ "$VERIFY_SUITE" != "all" ]; then
+        NODE_TESTS_RESULT="skipped-suite"
+        PYTHON_TESTS_RESULT="skipped-suite"
+        return
+    fi
+
+    while IFS= read -r test_path; do
+        node_test_paths+=("$test_path")
+    done < <(find "${PLUGIN_ROOT}/tests" -maxdepth 1 -type f -name '*.test.js' -print | LC_ALL=C sort)
+    if [ "${#node_test_paths[@]}" -eq 0 ]; then
+        printf 'ERROR: no package-local Node tests found\n' >&2
+        NODE_TESTS_RESULT="fail"
+        ALL_PASS=false
+    else
+        result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-node-tests.XXXXXX")"
+        if "$PYTHON_BIN" "$RUNNER" --label "node_tests" --timeout "$VERIFY_TIMEOUT" --result-file "$result_file" -- \
+            node --test --test-concurrency="$NODE_TEST_CONCURRENCY" "${node_test_paths[@]}"; then
+            NODE_TESTS_RESULT="pass"
+        else
+            status=$?
+            NODE_TESTS_RESULT="fail"
+            ALL_PASS=false
+            print_failure_tail "$result_file"
+            printf 'FAIL: Node tests exited %s\n' "$status" >&2
+        fi
+        rm -f "$result_file"
+    fi
+
+    result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-python-tests.XXXXXX")"
+    if "$PYTHON_BIN" "$RUNNER" --label "python_tests" --timeout "$VERIFY_TIMEOUT" --result-file "$result_file" -- \
+        "$PYTHON_BIN" -m pytest "${PLUGIN_ROOT}/tests" "${PLUGIN_ROOT}/tooling"; then
+        PYTHON_TESTS_RESULT="pass"
+    else
+        status=$?
+        PYTHON_TESTS_RESULT="fail"
+        ALL_PASS=false
+        print_failure_tail "$result_file"
+        printf 'FAIL: Python tests exited %s\n' "$status" >&2
+    fi
+    rm -f "$result_file"
+}
+
+if [ "$VERIFY_SUITE" != "lifecycle" ]; then
+    run_check doctor "${SCRIPTS_DIR}/lazyzcode-plugin-doctor.sh"  DOCTOR_RESULT
+    run_check smoke "${SCRIPTS_DIR}/lazyzcode-smoke-test.sh"     SMOKE_RESULT
+    run_check docs "${SCRIPTS_DIR}/lazyzcode-docs-check.sh"     DOCS_RESULT
+    run_check security "${SCRIPTS_DIR}/lazyzcode-security-check.sh" SECURITY_RESULT
+    run_check mcp_test "${SCRIPTS_DIR}/lazyzcode-mcp-test.sh"       MCP_RESULT
+    run_hook_pipeline_check hook_pipeline "${SCRIPTS_DIR}/hook-pipeline-test.sh" HOOK_RESULT
+    run_check load_check "${SCRIPTS_DIR}/lazyzcode-load-check.sh" LOAD_RESULT
+    run_check automatic_tooling_contract "${SCRIPTS_DIR}/lazyzcode-contract-check.sh" CONTRACT_RESULT
+fi
+run_regression_inventory
+run_language_tests
+
+# Build compact JSON summary
+json="{\"suite\":\"${VERIFY_SUITE}\",\"doctor\":\"${DOCTOR_RESULT}\",\"smoke\":\"${SMOKE_RESULT}\",\"docs\":\"${DOCS_RESULT}\",\"security\":\"${SECURITY_RESULT}\",\"mcp_test\":\"${MCP_RESULT}\",\"hook_pipeline\":\"${HOOK_RESULT}\",\"load_check\":\"${LOAD_RESULT}\",\"automatic_tooling_contract\":\"${CONTRACT_RESULT}\",\"regression_inventory\":\"${REGRESSION_INVENTORY_RESULT}\",\"shell_regressions\":\"${AUTOMATIC_TOOLING_REGRESSIONS_RESULT}\",\"node_tests\":\"${NODE_TESTS_RESULT}\",\"python_tests\":\"${PYTHON_TESTS_RESULT}\",\"automatic_tooling_regressions\":\"${AUTOMATIC_TOOLING_REGRESSIONS_RESULT}\",\"automatic_tooling_contract_parity\":\"${AUTOMATIC_TOOLING_CONTRACT_PARITY_RESULT}\",\"checks\":${CHECK_DETAILS},\"all_pass\":${ALL_PASS}}"
+
+echo "$json"
+
+# Auto-append verification event to active run's events.jsonl (v0.11 dogfood fix)
+LATEST_RUN=""
+if [ -x "${SCRIPTS_DIR}/state/latest-run.sh" ]; then
+    LATEST_RUN="$("${SCRIPTS_DIR}/state/latest-run.sh" 2>/dev/null || echo "")"
+fi
+if [ -n "$LATEST_RUN" ]; then
+    EVENTS_FILE=""
+    if [[ "$LATEST_RUN" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        EVENTS_FILE="${CWD:-.}/.lazyzcode/runs/$LATEST_RUN/events.jsonl"
+    fi
+    if [ -n "$EVENTS_FILE" ] && [ -f "$EVENTS_FILE" ]; then
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        ALL_PASS_PY=False
+        if [ "$ALL_PASS" = true ]; then
+            ALL_PASS_PY=True
+        fi
+        "$PYTHON_BIN" - "$CWD" "$EVENTS_FILE" "$LATEST_RUN" "$NOW" "$ALL_PASS_PY" <<'PY' 2>/dev/null || true
+import json
+import os
+import sys
+
+cwd, events_file, run_id, now, all_pass_raw = sys.argv[1:6]
+root = os.path.realpath(os.path.join(cwd, ".lazyzcode", "runs"))
+events_path = os.path.realpath(events_file)
+try:
+    inside_runs = os.path.commonpath([root, events_path]) == root
+except ValueError:
+    inside_runs = False
+if not inside_runs or not events_path.endswith(os.path.join(run_id, "events.jsonl")):
+    raise SystemExit(0)
+all_pass = all_pass_raw == "True"
+event = {"ts": now, "run_id": run_id, "event": "verification_passed" if all_pass else "verification_failed", "all_pass": all_pass}
+with open(events_path, "a") as f:
+    f.write(json.dumps(event) + "\n")
+PY
+    fi
+fi
+
+if [ "$ALL_PASS" = true ]; then
+    exit 0
+else
+    exit 1
+fi

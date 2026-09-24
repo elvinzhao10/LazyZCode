@@ -1,0 +1,924 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+PYTHON_REQUEST="${LAZYZCODE_TEST_PYTHON:-${LAZYZCODE_PYTHON:-}}"
+if [ -z "$PYTHON_REQUEST" ]; then
+    PYTHON_REQUEST="python3"
+    _pv="$(command -v python3 >/dev/null 2>&1 && python3 -c 'import sys; print("%d%02d" % sys.version_info[:2])' 2>/dev/null || true)"
+    if [ -z "$_pv" ] || [ "$_pv" -lt 310 ]; then
+        for _cand in python3.13 python3.12 python3.11 python3.10; do
+            command -v "$_cand" >/dev/null 2>&1 || continue
+            _cv="$("$_cand" -c 'import sys; print("%d%02d" % sys.version_info[:2])' 2>/dev/null || true)"
+            if [ -n "$_cv" ] && [ "$_cv" -ge 310 ]; then PYTHON_REQUEST="$_cand"; break; fi
+        done
+    fi
+fi
+if ! PYTHON_BIN="$(command -v "$PYTHON_REQUEST" 2>/dev/null)"; then
+    printf 'ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.\n' >&2
+    exit 2
+fi
+PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(sys.version_info[0], sys.version_info[1])' 2>/dev/null || true)"
+read -r PYTHON_MAJOR PYTHON_MINOR _ <<<"$PYTHON_VERSION"
+if ! [[ "$PYTHON_MAJOR" =~ ^[0-9]+$ && "$PYTHON_MINOR" =~ ^[0-9]+$ ]] \
+    || [ "$PYTHON_MAJOR" -lt 3 ] \
+    || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 10 ]; }; then
+    printf 'ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.\n' >&2
+    exit 2
+fi
+export PYTHON_BIN
+export LAZYZCODE_PYTHON="$PYTHON_BIN"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/lazyzcode-verifier.XXXXXX")"
+PYTHON_SHIM_DIR="$TMP/python-bin"
+mkdir -p "$PYTHON_SHIM_DIR"
+printf '%s\n' '#!/usr/bin/env bash' 'exec "${PYTHON_BIN:?}" "$@"' >"$PYTHON_SHIM_DIR/python3"
+chmod +x "$PYTHON_SHIM_DIR/python3"
+PATH="$PYTHON_SHIM_DIR:$PATH"
+export PATH
+PASS=0
+FAIL=0
+unset CLAUDE_PLUGIN_ROOT CWD
+cleanup() { rm -rf "$TMP"; }
+trap cleanup EXIT
+pass() { printf 'PASS %s\n' "$1"; PASS=$((PASS + 1)); }
+fail() { printf 'FAIL %s\n' "$1" >&2; FAIL=$((FAIL + 1)); }
+
+mkdir -p "$TMP/plugins/lazyzcode"
+mkdir -p "$TMP/plugins"
+cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/plugins/marketplace.json"
+# Given the former streaming fixture copy, when its consumer exits after one
+# byte, then pipefail exposes tar's real write-side EPIPE failure.  The
+# controlled early close makes this independent of archive size and host I/O.
+if tar -C "$PLUGIN_ROOT" --exclude='tooling/node_modules' --exclude='*/__pycache__' --exclude='*.pyc' -cf - . \
+    2>"$TMP/old-stream.stderr" | { IFS= read -r -n 1 _; exit 0; }; then
+    old_stream_statuses=("${PIPESTATUS[@]}")
+else
+    old_stream_statuses=("${PIPESTATUS[@]}")
+fi
+if [ "${old_stream_statuses[0]}" -ne 0 ] \
+    && [ "${old_stream_statuses[1]}" -eq 0 ] \
+    && grep -qi 'write error' "$TMP/old-stream.stderr"; then
+    pass "controlled old streaming archive reports producer EPIPE"
+else
+    fail "controlled old streaming archive must report producer EPIPE"
+fi
+
+if tar -C "$PLUGIN_ROOT" --exclude='tooling/node_modules' --exclude='*/__pycache__' --exclude='*.pyc' -cf "$TMP/plugin.tar" .; then
+    pass "file-backed fixture archive is created"
+else
+    fail "file-backed fixture archive creation"
+    exit 1
+fi
+if tar -C "$TMP/plugins/lazyzcode" -xf "$TMP/plugin.tar"; then
+    pass "file-backed fixture archive extracts successfully"
+else
+    fail "file-backed fixture archive extraction"
+    exit 1
+fi
+FIXTURE="$TMP/plugins/lazyzcode"
+[ -f "$FIXTURE/LICENSE" ] && pass "file-backed fixture contains the source license" || fail "file-backed fixture source license"
+[ ! -e "$FIXTURE/tooling/node_modules" ] && pass "verifier fixture omits unused tooling dependencies" || fail "verifier fixture must omit unused tooling dependencies"
+
+fixture_parity() {
+    local candidate="$1" report="$2"
+    if diff -ru --exclude='node_modules' --exclude='__pycache__' --exclude='*.pyc' "$PLUGIN_ROOT" "$candidate" >"$report"; then
+        return 0
+    fi
+    printf 'FIXTURE_PARITY_MISMATCH: %s\n' "$candidate" >>"$report"
+    return 1
+}
+
+if fixture_parity "$FIXTURE" "$TMP/fixture-parity.out"; then
+    pass "file-backed fixture passes named source parity validation"
+else
+    cat "$TMP/fixture-parity.out" >&2
+    fail "file-backed fixture source parity validation"
+fi
+cp -R "$FIXTURE" "$TMP/mismatched-plugin"
+rm -f "$TMP/mismatched-plugin/LICENSE"
+if fixture_parity "$TMP/mismatched-plugin" "$TMP/mismatched-parity.out"; then
+    fail "deliberate fixture mismatch must fail named parity validation"
+elif grep -Fq 'FIXTURE_PARITY_MISMATCH:' "$TMP/mismatched-parity.out" \
+    && grep -Fq 'LICENSE' "$TMP/mismatched-parity.out"; then
+    pass "deliberate fixture mismatch fails named parity validation"
+else
+    cat "$TMP/mismatched-parity.out" >&2
+    fail "deliberate fixture mismatch parity failure detail"
+fi
+grep -Fq 'VERIFY_TIMEOUT="${LAZYZCODE_VERIFY_TIMEOUT_SECONDS:-90}"' "$FIXTURE/scripts/lazyzcode-verify.sh" && pass "aggregate default timeout is finite release budget" || fail "aggregate default timeout budget"
+
+if "$PYTHON_BIN" - "$FIXTURE" "$TMP" >"$TMP/timeout-policy.out" 2>"$TMP/timeout-policy.stderr" <<'PY'
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+fixture = Path(sys.argv[1])
+tmp = Path(sys.argv[2])
+fake_runner = '''import json
+import os
+import sys
+
+args = sys.argv[1:]
+def option(name):
+    try:
+        return args[args.index(name) + 1]
+    except (ValueError, IndexError) as error:
+        raise SystemExit(f"missing runner option: {name}") from error
+
+label = option("--label")
+timeout = option("--timeout")
+result_file = option("--result-file")
+with open(os.environ["LAZYZCODE_TIMEOUT_CAPTURE"], "a", encoding="utf-8") as handle:
+    handle.write(f"{label}\\t{timeout}\\n")
+with open(result_file, "w", encoding="utf-8") as handle:
+    json.dump({"status": "pass", "reason": "ok", "tail": ""}, handle)
+print(f"PASS: {label}", file=sys.stderr)
+'''
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def capture_policy(name, mutate=False, verify_timeout=None):
+    root = tmp / name
+    shutil.copytree(fixture, root)
+    verify = root / "scripts" / "lazyzcode-verify.sh"
+    if mutate:
+        source = verify.read_text(encoding="utf-8")
+        old = 'test_timeout="$VERIFY_TIMEOUT"'
+        new = 'test_timeout="$READINESS_REGRESSION_TIMEOUT"'
+        require(source.count(old) == 1, "controlled timeout mutation target changed")
+        verify.write_text(source.replace(old, new, 1), encoding="utf-8")
+    (root / "scripts" / "lazyzcode-bounded-run.py").write_text(fake_runner, encoding="utf-8")
+    capture = root / "timeouts.tsv"
+    env = os.environ.copy()
+    env.pop("LAZYZCODE_VERIFY_TIMEOUT_SECONDS", None)
+    env.update({
+        "CLAUDE_PLUGIN_ROOT": str(root),
+        "LAZYZCODE_TIMEOUT_CAPTURE": str(capture),
+        "LAZYZCODE_VERIFY_REGRESSION_DEPTH": "0",
+        "LAZYZCODE_VERIFY_SUITE": "all",
+    })
+    if verify_timeout is not None:
+        env["LAZYZCODE_VERIFY_TIMEOUT_SECONDS"] = str(verify_timeout)
+    completed = subprocess.run(
+        ["bash", str(verify)],
+        cwd=root.parent,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    require(completed.returncode == 0, f"policy verifier exited {completed.returncode}: {completed.stderr}")
+    require(json.loads(completed.stdout)["all_pass"] is True, "policy verifier summary was not all_pass")
+    return root, [line.split("\t") for line in capture.read_text(encoding="utf-8").splitlines()]
+
+
+def assert_scoped_policy(root, records):
+    prefix = "regression:"
+    paired_only = {
+        "v016-automatic-tooling-contract-parity.sh",
+        "v017-capability-readiness-contract-parity.sh",
+        "v018-docs-manifest-parity.sh",
+        "v103-lifecycle-contract-parity.sh",
+        "v110-six-host-contract-parity.sh",
+        "v110-six-host-contract-parity-regression.sh",
+        "v110-paired-live-test-candidate.sh",
+    }
+    expected = {
+        f"{prefix}{path.name}"
+        for path in (root / "tests").glob("*-regression.sh")
+        if path.name != "publication-regression.sh" and path.name not in paired_only
+    }
+    expected.add(f"{prefix}plan-format-compat.test.sh")
+    observed = [(label, timeout) for label, timeout in records if label.startswith(prefix)]
+    require(len(observed) == len(expected), "standalone regression timeout capture was incomplete or duplicated")
+    by_label = dict(observed)
+    require(set(by_label) == expected, "standalone regression timeout labels did not match the complete inventory")
+    require(
+        not ({f"{prefix}{name}" for name in paired_only} & set(by_label)),
+        "explicit-root paired-only regression was scheduled as standalone",
+    )
+    readiness = f"{prefix}v015-readiness-regression.sh"
+    package_boundary = f"{prefix}v015-package-boundary-regression.sh"
+    require(by_label[readiness] == "900", f"{readiness} expected 900, observed {by_label[readiness]}")
+    require(by_label[package_boundary] == "180", f"{package_boundary} expected 180, observed {by_label[package_boundary]}")
+    for label in sorted(expected - {readiness, package_boundary}):
+        require(by_label[label] == "90", f"{label} expected 90, observed {by_label[label]}")
+    by_all_labels = {label: timeout for label, timeout in records}
+    require(by_all_labels.get("node_tests") == "90", "aggregate omitted automatic Node tests")
+    require(by_all_labels.get("python_tests") == "90", "aggregate omitted automatic Python tests")
+    return len(expected) - 2
+
+
+production_root, production_records = capture_policy("timeout-policy-production")
+other_count = assert_scoped_policy(production_root, production_records)
+print("READINESS_TIMEOUT=900")
+print("PACKAGE_BOUNDARY_TIMEOUT=180")
+print(f"OTHER_STANDALONE_TIMEOUT=90 COUNT={other_count}")
+print("NODE_TESTS=scheduled")
+print("PYTHON_TESTS=scheduled")
+
+override_root, override_records = capture_policy("timeout-policy-user-override", verify_timeout=960)
+override_by_label = {label: timeout for label, timeout in override_records}
+override_mismatches = {label: timeout for label, timeout in override_by_label.items() if timeout != "960"}
+require(not override_mismatches, f"explicit timeout override was not preserved: {override_mismatches}")
+print("USER_TIMEOUT_OVERRIDE=960")
+
+mutant_root, mutant_records = capture_policy("timeout-policy-global-readiness-mutant", mutate=True)
+try:
+    assert_scoped_policy(mutant_root, mutant_records)
+except RuntimeError as error:
+    print(f"GLOBAL_READINESS_MUTANT_REJECTED={error}")
+else:
+    raise RuntimeError("global-readiness timeout mutant passed the scoped policy check")
+PY
+then
+    grep -Fq 'READINESS_TIMEOUT=900' "$TMP/timeout-policy.out" \
+        && pass "readiness regression receives the scoped 900-second budget" \
+        || fail "readiness regression scoped timeout budget"
+    grep -Fq 'PACKAGE_BOUNDARY_TIMEOUT=180' "$TMP/timeout-policy.out" \
+        && pass "package-boundary regression receives the scoped 180-second budget" \
+        || fail "package-boundary regression scoped timeout budget"
+    grep -Fq 'OTHER_STANDALONE_TIMEOUT=90 COUNT=' "$TMP/timeout-policy.out" \
+        && pass "all other standalone regressions retain the 90-second default" \
+        || fail "non-readiness standalone regression timeout budget"
+    grep -Fq 'NODE_TESTS=scheduled' "$TMP/timeout-policy.out" \
+        && grep -Fq 'PYTHON_TESTS=scheduled' "$TMP/timeout-policy.out" \
+        && pass "aggregate automatically schedules Node and Python tests" \
+        || fail "aggregate automatic language test coverage"
+    grep -Fq 'GLOBAL_READINESS_MUTANT_REJECTED=' "$TMP/timeout-policy.out" \
+        && pass "global-readiness standalone timeout mutant is rejected" \
+        || fail "global-readiness standalone timeout mutant rejection"
+    grep -Fq 'USER_TIMEOUT_OVERRIDE=960' "$TMP/timeout-policy.out" \
+        && pass "explicit timeout override remains larger than scoped floors" \
+        || fail "explicit timeout override preservation"
+else
+    cat "$TMP/timeout-policy.out" "$TMP/timeout-policy.stderr" >&2
+    fail "standalone timeout policy probe executes"
+fi
+grep -Fq 'LAZYZCODE_VERIFY_TIMEOUT_SECONDS:-90' "$FIXTURE/scripts/hook-pipeline-test.sh" && pass "hook pipeline shares finite release budget" || fail "hook pipeline default timeout budget"
+
+HOOK_PIPELINE_PYTHON="$PYTHON_BIN"
+if "$HOOK_PIPELINE_PYTHON" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' 2>/dev/null; then
+    mkdir -p "$TMP/hook-pipeline-project" "$TMP/hook-pipeline-python-bin"
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'if [[ "${1:-}" == */lazyzcode-bounded-run.py ]]; then' \
+        '    printf "PATH_PYTHON3_WAS_USED_FOR_BOUNDED_RUNNER\\n" >&2' \
+        '    exit 93' \
+        'fi' \
+        'exec "${LAZYZCODE_SELECTED_PYTHON:?}" "$@"' >"$TMP/hook-pipeline-python-bin/python3"
+    chmod +x "$TMP/hook-pipeline-python-bin/python3"
+    if CWD="$TMP/hook-pipeline-project" \
+        CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+        LAZYZCODE_PYTHON="$HOOK_PIPELINE_PYTHON" \
+        LAZYZCODE_SELECTED_PYTHON="$HOOK_PIPELINE_PYTHON" \
+        PATH="$TMP/hook-pipeline-python-bin:$PATH" \
+        bash "$FIXTURE/scripts/hook-pipeline-test.sh" >"$TMP/hook-pipeline-python.out" 2>"$TMP/hook-pipeline-python.err" \
+    && grep -Fq 'Hook pipeline test: ALL PASS' "$TMP/hook-pipeline-python.out" \
+    && ! grep -Fq 'SyntaxError' "$TMP/hook-pipeline-python.out" "$TMP/hook-pipeline-python.err"; then
+        pass "hook pipeline honors selected Python 3.10+ interpreter"
+    else
+        cat "$TMP/hook-pipeline-python.out" "$TMP/hook-pipeline-python.err" 2>/dev/null >&2 || true
+        fail "hook pipeline must honor selected Python 3.10+ interpreter"
+    fi
+else
+    fail "hook pipeline requires a selected Python 3.10+ interpreter"
+fi
+
+# Given a short trusted package check, when it completes before its deadline,
+# then the runner reports a normal pass.
+"$PYTHON_BIN" "$FIXTURE/scripts/lazyzcode-bounded-run.py" --label fast --timeout 1 --result-file "$TMP/fast.json" -- bash -c 'exit 0' >"$TMP/fast.out" 2>"$TMP/fast.stderr"
+"$PYTHON_BIN" - "$TMP/fast.json" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "pass" and payload["reason"] == "ok" and payload["tail"] == ""
+assert payload["cleanup"]["status"] == "verified-absent"
+PY
+grep -q '^PASS: fast$' "$TMP/fast.stderr" && pass "fast trusted command succeeds" || fail "fast trusted command result"
+
+# Given a trusted process inspector that executes but reports failure, cleanup
+# must treat inspection as unavailable instead of interpreting empty output as
+# proof that no descendants remain.
+"$PYTHON_BIN" - "$FIXTURE/scripts/lazyzcode-bounded-run.py" "$FIXTURE/scripts/lazyzcode_process_lifecycle.py" <<'PY'
+import importlib.util
+import importlib
+import subprocess
+import sys
+from unittest import mock
+
+module_path = sys.argv[1]
+sys.path.insert(0, str(__import__('pathlib').Path(sys.argv[2]).parent))
+spec = importlib.util.spec_from_file_location("lazyzcode_bounded_run", module_path)
+assert spec is not None and spec.loader is not None
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+process_module = importlib.import_module("lazyzcode_bounded_process")
+lifecycle_module = importlib.import_module("lazyzcode_process_lifecycle")
+
+failed_snapshot = subprocess.CompletedProcess(["/bin/ps"], 1, stdout="", stderr="inspection failed")
+with mock.patch.object(process_module.subprocess, "run", return_value=failed_snapshot):
+    try:
+        process_module.process_records()
+    except subprocess.CalledProcessError:
+        pass
+    else:
+        raise AssertionError("nonzero ps exit was treated as an empty successful snapshot")
+
+invalid_snapshot = subprocess.CompletedProcess(["/bin/ps"], 0, stdout="not a process record\n", stderr="")
+with mock.patch.object(process_module.subprocess, "run", return_value=invalid_snapshot):
+    try:
+        process_module.process_records()
+    except OSError:
+        pass
+    else:
+        raise AssertionError("invalid ps output was treated as an empty successful snapshot")
+
+inspection_error = subprocess.CalledProcessError(1, ["/bin/ps"])
+root = lifecycle_module.ProcessRecord(424242, 1, 424242, "S", "owned-start")
+tracker = lifecycle_module.OwnershipTracker.establish(root, lifecycle_module.InspectionAvailable((root,)))
+with mock.patch.object(process_module, "process_records", side_effect=inspection_error):
+    cleanup = lifecycle_module.cleanup_owned_processes(
+        tracker,
+        process_module.inspect_processes,
+        process_module.signal_owned_group,
+    )
+assert cleanup.status is lifecycle_module.CleanupStatus.INSPECTION_UNAVAILABLE
+assert cleanup.tracked_pids == (424242,)
+PY
+pass "failed process inspection remains fail-closed"
+
+if "$PYTHON_BIN" - "$FIXTURE/scripts/lazyzcode-bounded-run.py" >"$TMP/process-inspection.out" 2>&1 <<'PY'
+import importlib.util
+import importlib
+import sys
+
+module_path = sys.argv[1]
+sys.path.insert(0, str(__import__('pathlib').Path(module_path).parent))
+spec = importlib.util.spec_from_file_location("lazyzcode_bounded_run_probe", module_path)
+assert spec is not None and spec.loader is not None
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+importlib.import_module("lazyzcode_bounded_process").process_records()
+PY
+then
+    PROCESS_INSPECTION_SUPPORTED=true
+else
+    PROCESS_INSPECTION_SUPPORTED=false
+    printf 'UNSUPPORTED: trusted process inspection is unavailable; timeout cleanup remains fail-closed\n'
+fi
+
+# Given a command whose child remains in the runner-owned process group, when
+# its deadline expires, then cleanup terminates that group.
+GROUP_CHILD_PID="$TMP/group-child.pid"
+if CHILD_PID="$GROUP_CHILD_PID" "$PYTHON_BIN" "$FIXTURE/scripts/lazyzcode-bounded-run.py" --label group --timeout 1 --result-file "$TMP/group.json" -- bash -c '( sleep 30 ) & printf "%s\n" "$!" > "$CHILD_PID"; sleep 30' >"$TMP/group.out" 2>"$TMP/group.stderr"; then
+    fail "group timeout must fail"
+else
+    pass "group timeout fails"
+fi
+group_child_pid="$(cat "$GROUP_CHILD_PID")"
+"$PYTHON_BIN" - "$TMP/group.json" "$group_child_pid" "$PROCESS_INSPECTION_SUPPORTED" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "timeout"
+assert payload["reason"] == "deadline_exceeded"
+inspection_supported = sys.argv[3] == "true"
+assert payload["cleanup"]["status"] == ("verified-absent" if inspection_supported else "inspection-unavailable")
+assert payload["cleanup"]["process_group_terminated"] is inspection_supported
+assert payload["cleanup"]["detectable_descendants_remaining"] is (not inspection_supported)
+PY
+if kill -0 "$group_child_pid" 2>/dev/null; then fail "timeout left owned group child alive"; else pass "timeout terminates owned process group"; fi
+
+# Given a child that escapes into another process group, when the parent times
+# out, then the runner reports the still-detectable child but never signals it.
+ESCAPED_CHILD_PID="$TMP/escaped-child.pid"
+if CHILD_PID="$ESCAPED_CHILD_PID" "$PYTHON_BIN" "$FIXTURE/scripts/lazyzcode-bounded-run.py" --label escaped --timeout 1 --result-file "$TMP/escaped.json" -- bash -c '"$PYTHON_BIN" -c "import os, time; os.setsid(); time.sleep(3)" & printf "%s\n" "$!" > "$CHILD_PID"; sleep 30' >"$TMP/escaped.out" 2>"$TMP/escaped.stderr"; then
+    fail "escaped timeout must fail"
+else
+    pass "escaped timeout fails"
+fi
+escaped_child_pid="$(cat "$ESCAPED_CHILD_PID")"
+"$PYTHON_BIN" - "$TMP/escaped.json" "$escaped_child_pid" "$PROCESS_INSPECTION_SUPPORTED" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "unavailable"
+assert payload["reason"] == "process_cleanup_failed"
+inspection_supported = sys.argv[3] == "true"
+assert payload["cleanup"]["status"] == ("verified-remaining" if inspection_supported else "inspection-unavailable")
+assert payload["cleanup"]["process_group_terminated"] is False
+assert payload["cleanup"]["detectable_descendants_remaining"] is True
+assert payload["cleanup"]["supervisor_teardown"] == "verified-absent"
+PY
+if kill -0 "$escaped_child_pid" 2>/dev/null; then pass "escaped child is reported without signaling"; else fail "escaped child was signaled"; fi
+grep -q '^CLEANUP: escaped status=.* detectable_descendants_remaining=true' "$TMP/escaped.stderr" && pass "stderr reports detectable escaped child" || fail "escaped child cleanup report"
+for _ in $(seq 1 150); do
+    if ! kill -0 "$escaped_child_pid" 2>/dev/null; then break; fi
+    sleep 0.02
+done
+if kill -0 "$escaped_child_pid" 2>/dev/null; then fail "escaped fixture did not finish its bounded self-cleanup"; else pass "escaped fixture self-cleans without runner signaling"; fi
+
+cat > "$FIXTURE/scripts/lazyzcode-smoke-test.sh" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+( sleep 30 ) &
+printf '%s\n' "$!" > "${LAZYZCODE_CHILD_PID:?}"
+sleep 30
+SH
+chmod +x "$FIXTURE/scripts/lazyzcode-smoke-test.sh"
+for check_script in \
+    lazyzcode-plugin-doctor.sh \
+    lazyzcode-docs-check.sh \
+    lazyzcode-security-check.sh \
+    lazyzcode-mcp-test.sh \
+    hook-pipeline-test.sh \
+    lazyzcode-load-check.sh \
+    lazyzcode-contract-check.sh; do
+    printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$FIXTURE/scripts/$check_script"
+    chmod +x "$FIXTURE/scripts/$check_script"
+done
+if CLAUDE_PLUGIN_ROOT="$FIXTURE" LAZYZCODE_VERIFY_TIMEOUT_SECONDS=3 LAZYZCODE_VERIFY_REGRESSION_DEPTH=1 LAZYZCODE_CHILD_PID="$TMP/child.pid" bash "$FIXTURE/scripts/lazyzcode-verify.sh" >"$TMP/verify.json" 2>"$TMP/verify.stderr"; then
+    fail "aggregate timeout must fail"
+else
+    pass "aggregate timeout fails"
+fi
+grep -q '^START: smoke$' "$TMP/verify.stderr" && pass "progress starts immediately" || fail "missing smoke START"
+if grep -q '^TIMEOUT: smoke$' "$TMP/verify.stderr"; then
+    pass "timeout is named"
+else
+    cat "$TMP/verify.stderr" >&2
+    fail "missing named timeout"
+fi
+if "$PYTHON_BIN" - "$TMP/verify.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["all_pass"] is False
+assert payload["checks"]["smoke"] == {"status": "timeout", "reason": "deadline_exceeded"}
+PY
+then
+    pass "final summary is valid fail-closed JSON"
+else
+    cat "$TMP/verify.stderr" >&2
+    fail "final summary is valid fail-closed JSON"
+fi
+for _ in $(seq 1 50); do [ -f "$TMP/child.pid" ] && break; sleep 0.02; done
+child_pid="$(cat "$TMP/child.pid")"
+if kill -0 "$child_pid" 2>/dev/null; then fail "timeout left owned group child alive"; else pass "timeout terminates smoke process group"; fi
+
+cat > "$FIXTURE/scripts/lazyzcode-smoke-test.sh" <<'SH'
+#!/usr/bin/env bash
+exit 0
+SH
+chmod +x "$FIXTURE/scripts/lazyzcode-smoke-test.sh"
+"$PYTHON_BIN" "$FIXTURE/scripts/lazyzcode-bounded-run.py" --label "later-check" --timeout 1 --result-file "$TMP/repeat.json" -- bash -c 'exit 0' >"$TMP/repeat.out" 2>"$TMP/repeat.stderr"
+"$PYTHON_BIN" - "$TMP/repeat.json" <<'PY'
+import json
+import sys
+assert json.load(open(sys.argv[1], encoding="utf-8"))["status"] == "pass"
+PY
+grep -q '^PASS: later-check$' "$TMP/repeat.stderr"
+pass "independent later aggregate runs"
+
+# Given an unversioned regression matching the package suffix, when the
+# aggregate inventory runs, then it rejects the unclassified script.
+cat > "$FIXTURE/tests/unlisted-regression.sh" <<'SH'
+#!/usr/bin/env bash
+exit 0
+SH
+chmod +x "$FIXTURE/tests/unlisted-regression.sh"
+if CLAUDE_PLUGIN_ROOT="$FIXTURE" LAZYZCODE_VERIFY_REGRESSION_DEPTH=1 bash "$FIXTURE/scripts/lazyzcode-verify.sh" >"$TMP/unclassified.json" 2>"$TMP/unclassified.stderr"; then
+    fail "unversioned unclassified regression must fail inventory"
+else
+    pass "unversioned unclassified regression fails inventory"
+fi
+grep -Fq 'ERROR: unclassified package-local regression: unlisted-regression.sh' "$TMP/unclassified.stderr" && pass "unversioned regression rejection is identified" || fail "unversioned regression rejection detail"
+rm -f "$FIXTURE/tests/unlisted-regression.sh"
+
+cp "$PLUGIN_ROOT/scripts/lazyzcode-plugin-doctor.sh" "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh"
+mkdir "$TMP/fake-bin"
+cat > "$TMP/fake-bin/zcode" <<'SH'
+#!/usr/bin/env bash
+[ -z "${FAKE_ZCODE_MARKER:-}" ] || printf 'invoked\n' >> "$FAKE_ZCODE_MARKER"
+case "${FAKE_ZCODE_MODE:-pass}" in
+  pass) printf '%s\n' 'Validation successful: 0 errors' ;;
+  structured-pass) printf '%s\n' 'Validation passed' '{"valid":true}' ;;
+  structured-leading-failure) printf '%s\n' 'Validation failed: leading validator output' '{"valid":true}' ;;
+  structured-leading-invalid) printf '%s\n' 'Invalid plugin manifest' '{"valid":true}' ;;
+  structured-leading-rejected) printf '%s\n' 'Rejected plugin manifest' '{"valid":true}' ;;
+  structured-leading-error) printf '%s\n' 'Error: plugin manifest could not be checked' '{"valid":true}' ;;
+  structured-pass-trailing-failure)
+    printf '%s\n' '{"valid":true}' 'Validation failed: trailing validator output'
+    ;;
+  structured-errors) printf '%s\n' 'Validation passed' '{"valid":true,"errors":["bad"]}' ;;
+  structured-error-object) printf '%s\n' 'Validation passed' '{"valid":true}' '{"error":"bad"}' ;;
+  pretty-embedded)
+    printf '%s\n' 'Validation passed with details:' '{' '  "valid": true,' '  "errors": []' '}'
+    ;;
+  contradictory)
+    printf '%s\n' 'Validation passed with details:' '{"valid":true}' '{"valid":false,"errors":["bad manifest"]}'
+    ;;
+  structured-nonzero) printf '%s\n' 'Validation passed' '{"valid":true}'; exit 9 ;;
+  semantic) printf '%s\n' 'Validation failed: 2 errors' ;;
+  misleading) printf '%s\n' 'Validation passed with errors: 2' ;;
+  invalid-text) printf '%s\n' 'Invalid plugin manifest' ;;
+  invalid-json) printf '%s\n' '{"valid":false,"errors":["bad manifest"]}' ;;
+  invalid-symbol) printf '%s\n' '✘ plugin manifest rejected' ;;
+  nonzero) printf '%s\n' 'validator rejected manifest'; exit 9 ;;
+  timeout) sleep 30 ;;
+esac
+SH
+chmod +x "$TMP/fake-bin/zcode"
+
+RUNTIME_PATH="$(dirname "$(command -v node)"):$(dirname "$PYTHON_BIN"):/usr/bin:/bin"
+PATH_SPOOF_MARKER="$TMP/path-spoof.marker"
+if PATH="$TMP/fake-bin:$RUNTIME_PATH" \
+    FAKE_ZCODE_MARKER="$PATH_SPOOF_MARKER" \
+    CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+    bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" >"$TMP/doctor-default.out" 2>"$TMP/doctor-default.err" \
+    && [ ! -e "$PATH_SPOOF_MARKER" ]; then
+    pass "default package doctor does not execute PATH zcode"
+else
+    fail "default package doctor PATH boundary"
+fi
+
+EXPLICIT_MARKER="$TMP/explicit-validator.marker"
+if PATH="$TMP/fake-bin:$RUNTIME_PATH" \
+    FAKE_ZCODE_MARKER="$EXPLICIT_MARKER" \
+    CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+    bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+        --host-validator "$TMP/fake-bin/zcode" \
+        >"$TMP/doctor-explicit.out" 2>"$TMP/doctor-explicit.err" \
+    && [ -s "$EXPLICIT_MARKER" ] \
+    && grep -q '\[PASS\] ZCode CLI manifest validator' "$TMP/doctor-explicit.out"; then
+    pass "explicit absolute host validator executes"
+else
+    fail "explicit absolute host validator boundary"
+fi
+
+mkdir "$TMP/python-spoof-bin"
+PYTHON_SPOOF_MARKER="$TMP/python-spoof.marker"
+printf '%s\n' '#!/usr/bin/env bash' \
+    ': >"${LAZYZCODE_PYTHON_SPOOF_MARKER:?}"' \
+    'printf "%s\\n" "unexpected PATH python3 invocation" >&2' \
+    'exit 93' >"$TMP/python-spoof-bin/python3"
+chmod +x "$TMP/python-spoof-bin/python3"
+if PATH="$TMP/python-spoof-bin:$RUNTIME_PATH" \
+    LAZYZCODE_PYTHON="$PYTHON_BIN" \
+    LAZYZCODE_PYTHON_SPOOF_MARKER="$PYTHON_SPOOF_MARKER" \
+    FAKE_ZCODE_MARKER="$EXPLICIT_MARKER" \
+    CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+    bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+        --host-validator "$TMP/fake-bin/zcode" \
+        >"$TMP/doctor-selected-python.out" 2>"$TMP/doctor-selected-python.err" \
+    && [ ! -e "$PYTHON_SPOOF_MARKER" ] \
+    && grep -q '\[PASS\] ZCode CLI manifest validator' "$TMP/doctor-selected-python.out"; then
+    pass "doctor honors selected Python over PATH python3"
+else
+    fail "doctor selected Python boundary"
+fi
+
+MISSING_DOCTOR_PYTHON="$TMP/missing-doctor-python"
+if LAZYZCODE_PYTHON="$MISSING_DOCTOR_PYTHON" \
+    CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+    bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+    >"$TMP/doctor-missing-python.out" 2>"$TMP/doctor-missing-python.err"; then
+    missing_python_status=0
+else
+    missing_python_status=$?
+fi
+[ "$missing_python_status" -eq 2 ] \
+    && grep -Fq 'ERROR: LazyZCode requires Python 3.10 or newer.' "$TMP/doctor-missing-python.err" \
+    && pass "doctor rejects a missing selected Python interpreter" \
+    || fail "doctor missing selected Python interpreter"
+
+UNSUPPORTED_DOCTOR_PYTHON="$TMP/unsupported-doctor-python"
+printf '%s\n' '#!/usr/bin/env bash' \
+    'if [ "${1:-}" = "-c" ]; then printf "%s\\n" "3 9"; exit 0; fi' \
+    'exit 94' >"$UNSUPPORTED_DOCTOR_PYTHON"
+chmod +x "$UNSUPPORTED_DOCTOR_PYTHON"
+if LAZYZCODE_PYTHON="$UNSUPPORTED_DOCTOR_PYTHON" \
+    CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+    bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+    >"$TMP/doctor-unsupported-python.out" 2>"$TMP/doctor-unsupported-python.err"; then
+    unsupported_python_status=0
+else
+    unsupported_python_status=$?
+fi
+[ "$unsupported_python_status" -eq 2 ] \
+    && grep -Fq 'ERROR: LazyZCode requires Python 3.10 or newer.' "$TMP/doctor-unsupported-python.err" \
+    && pass "doctor rejects an unsupported selected Python interpreter" \
+    || fail "doctor unsupported selected Python interpreter"
+
+if CLAUDE_PLUGIN_ROOT="$FIXTURE" bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+    --host-validator zcode >"$TMP/doctor-relative.out" 2>"$TMP/doctor-relative.err"; then
+    fail "relative host validator must be rejected"
+elif grep -q -- '--host-validator must be an absolute executable file' "$TMP/doctor-relative.err"; then
+    pass "doctor rejects a relative host validator"
+else
+    fail "relative host validator rejection detail"
+fi
+
+ln -s "$TMP/fake-bin/zcode" "$TMP/doctor-validator-symlink"
+if CLAUDE_PLUGIN_ROOT="$FIXTURE" bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" \
+    --host-validator "$TMP/doctor-validator-symlink" >"$TMP/doctor-symlink.out" 2>"$TMP/doctor-symlink.err"; then
+    fail "symlink host validator must be rejected"
+elif grep -q -- '--host-validator must be an absolute executable file' "$TMP/doctor-symlink.err"; then
+    pass "doctor rejects a symlink host validator"
+else
+    fail "symlink host validator rejection detail"
+fi
+
+mkdir "$TMP/launch-error-bin"
+printf '%s\n' '#!/definitely/missing/lazyzcode-interpreter' > "$TMP/launch-error-bin/zcode"
+chmod +x "$TMP/launch-error-bin/zcode"
+RUNTIME_PATH="$(dirname "$(command -v node)"):$(dirname "$PYTHON_BIN"):/usr/bin:/bin"
+
+run_doctor() {
+    local label="$1" host="$2" mode="$3" bin_dir="$4"
+    DOCTOR_OUTPUT="$TMP/doctor-$label.out"
+    if PATH="$bin_dir:$RUNTIME_PATH" \
+        FAKE_ZCODE_MODE="$mode" \
+        FAKE_ZCODE_MARKER="${DOCTOR_MARKER:-}" \
+        LAZYZCODE_DOCTOR_HOST="$host" \
+        LAZYZCODE_HOST_VALIDATOR_TIMEOUT_SECONDS=1 \
+        CLAUDE_PLUGIN_ROOT="$FIXTURE" \
+        bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" >"$DOCTOR_OUTPUT" 2>"$DOCTOR_OUTPUT.err"; then
+        DOCTOR_STATUS=0
+    else
+        DOCTOR_STATUS=$?
+    fi
+}
+
+if "$PYTHON_BIN" - "$FIXTURE" "$TMP" "$RUNTIME_PATH" >"$TMP/doctor-matrix.out" 2>"$TMP/doctor-matrix.err" <<'PY'
+from concurrent.futures import ThreadPoolExecutor
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+fixture = Path(sys.argv[1])
+tmp = Path(sys.argv[2])
+runtime_path = sys.argv[3]
+fake_bin = tmp / "fake-bin"
+launch_error_bin = tmp / "launch-error-bin"
+empty_bin = tmp / "empty-bin"
+cases = [
+    ("package-pass", "package", "pass", fake_bin),
+    ("package-structured-pass", "package", "structured-pass", fake_bin),
+    ("package-structured-leading-failure", "package", "structured-leading-failure", fake_bin),
+    ("package-structured-leading-invalid", "package", "structured-leading-invalid", fake_bin),
+    ("package-structured-leading-rejected", "package", "structured-leading-rejected", fake_bin),
+    ("package-structured-leading-error", "package", "structured-leading-error", fake_bin),
+    ("package-structured-pass-trailing-failure", "package", "structured-pass-trailing-failure", fake_bin),
+    ("package-structured-errors", "package", "structured-errors", fake_bin),
+    ("package-structured-error-object", "package", "structured-error-object", fake_bin),
+    ("package-pretty-embedded", "package", "pretty-embedded", fake_bin),
+    ("package-contradictory", "package", "contradictory", fake_bin),
+    ("package-structured-nonzero", "package", "structured-nonzero", fake_bin),
+    ("package-semantic", "package", "semantic", fake_bin),
+    ("package-misleading", "package", "misleading", fake_bin),
+    ("package-invalid-text", "package", "invalid-text", fake_bin),
+    ("package-invalid-json", "package", "invalid-json", fake_bin),
+    ("package-invalid-symbol", "package", "invalid-symbol", fake_bin),
+    ("package-nonzero", "package", "nonzero", fake_bin),
+    ("package-timeout", "package", "timeout", fake_bin),
+    ("package-launch", "package", "pass", launch_error_bin),
+    ("package-absent", "package", "pass", empty_bin),
+    ("cli-pass", "zcode", "pass", fake_bin),
+    ("cli-semantic", "zcode", "semantic", fake_bin),
+    ("cli-timeout", "zcode", "timeout", fake_bin),
+    ("cli-launch", "zcode", "pass", launch_error_bin),
+    ("cli-absent", "zcode", "pass", empty_bin),
+]
+if len({label for label, *_ in cases}) != len(cases):
+    raise SystemExit("duplicate doctor matrix label")
+
+def run(case: tuple[str, str, str, Path]) -> tuple[str, int]:
+    label, host, mode, bin_dir = case
+    environment = os.environ | {
+        "PATH": f"{bin_dir}:{runtime_path}",
+        "FAKE_ZCODE_MODE": mode,
+        "FAKE_ZCODE_MARKER": "",
+        "LAZYZCODE_DOCTOR_HOST": host,
+        "LAZYZCODE_HOST_VALIDATOR_TIMEOUT_SECONDS": "1",
+        "CLAUDE_PLUGIN_ROOT": str(fixture),
+    }
+    with open(tmp / f"doctor-{label}.out", "w", encoding="utf-8") as stdout, open(
+        tmp / f"doctor-{label}.out.err", "w", encoding="utf-8"
+    ) as stderr:
+        command = ["bash", str(fixture / "scripts" / "lazyzcode-plugin-doctor.sh")]
+        validator = bin_dir / "zcode"
+        if validator.is_file():
+            command.extend(["--host-validator", str(validator)])
+        completed = subprocess.run(
+            command,
+            env=environment,
+            stdout=stdout,
+            stderr=stderr,
+            check=False,
+        )
+    return label, completed.returncode
+
+max_workers = 4
+with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    results = list(executor.map(run, cases))
+with open(tmp / "doctor-matrix.tsv", "w", encoding="utf-8") as output:
+    for label, status in results:
+        output.write(f"{label}\t{status}\n")
+print(f"DOCTOR_MATRIX_MAX_WORKERS={max_workers} COUNT={len(results)}")
+PY
+then
+    grep -Fqx 'DOCTOR_MATRIX_MAX_WORKERS=4 COUNT=26' "$TMP/doctor-matrix.out" \
+        && pass "doctor classification matrix uses a bounded worker pool" \
+        || fail "doctor classification matrix worker boundary"
+else
+    cat "$TMP/doctor-matrix.out" "$TMP/doctor-matrix.err" >&2
+    fail "doctor classification matrix executes"
+fi
+
+load_doctor() {
+    local label="$1"
+    DOCTOR_OUTPUT="$TMP/doctor-$label.out"
+    DOCTOR_STATUS="$(awk -F '\t' -v expected="$label" '$1 == expected { print $2 }' "$TMP/doctor-matrix.tsv")"
+    [ -n "$DOCTOR_STATUS" ] || fail "doctor classification matrix omitted $label"
+}
+
+load_doctor package-pass
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[PASS\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor accepts validator pass" || fail "package validator pass classification"
+load_doctor package-structured-pass
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[PASS\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor accepts structured validator pass" || fail "package structured validator pass classification"
+load_doctor package-structured-leading-failure
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects leading validator failure text before valid JSON" || fail "package leading validator failure classification"
+load_doctor package-structured-leading-invalid
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects leading invalid text before valid JSON" || fail "package leading invalid text classification"
+load_doctor package-structured-leading-rejected
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects leading rejected text before valid JSON" || fail "package leading rejected text classification"
+load_doctor package-structured-leading-error
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects leading error text before valid JSON" || fail "package leading error text classification"
+load_doctor package-structured-pass-trailing-failure
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects trailing validator failure text" || fail "package trailing validator failure classification"
+load_doctor package-structured-errors
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects valid structured output with errors" || fail "package structured output with errors classification"
+load_doctor package-structured-error-object
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects adjacent structured error object" || fail "package adjacent structured error object classification"
+load_doctor package-pretty-embedded
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[PASS\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor accepts pretty embedded validator JSON" || fail "package pretty embedded validator JSON classification"
+load_doctor package-contradictory
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects contradictory validator JSON" || fail "package contradictory validator JSON classification"
+load_doctor package-structured-nonzero
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects structured validator nonzero" || fail "package structured validator nonzero classification"
+load_doctor package-semantic
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor hard-fails semantic validator output" || fail "package semantic validator classification"
+load_doctor package-misleading
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor rejects misleading success output" || fail "package misleading validator classification"
+load_doctor package-invalid-text
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && grep -Fq 'Invalid plugin manifest' "$DOCTOR_OUTPUT" && pass "package doctor rejects unrecognized invalid-manifest text" || fail "package invalid-manifest text classification"
+load_doctor package-invalid-json
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && grep -Fq '{"valid":false,"errors":["bad manifest"]}' "$DOCTOR_OUTPUT" && pass "package doctor rejects structured false validator output" || fail "package structured false validator classification"
+load_doctor package-invalid-symbol
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && grep -Fq '✘ plugin manifest rejected' "$DOCTOR_OUTPUT" && pass "package doctor rejects symbolic manifest rejection" || fail "package symbolic rejection classification"
+load_doctor package-nonzero
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "package doctor hard-fails validator nonzero" || fail "package nonzero validator classification"
+load_doctor package-timeout
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[UNCHECKED\] ZCode CLI manifest validator.*timeout' "$DOCTOR_OUTPUT" && grep -q '^TIMEOUT: ZCode CLI manifest validator$' "$DOCTOR_OUTPUT.err" && pass "package doctor leaves validator timeout unchecked" || fail "package timeout validator classification"
+load_doctor package-launch
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[UNCHECKED\] ZCode CLI manifest validator.*unavailable' "$DOCTOR_OUTPUT" && pass "package doctor leaves validator launch unavailable unchecked" || fail "package launch validator classification"
+load_doctor package-absent
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[SKIP\] ZCode CLI manifest validator.*package-only default' "$DOCTOR_OUTPUT" && pass "package doctor defaults to package-only validation" || fail "package absent validator classification"
+
+load_doctor cli-pass
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[PASS\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "CLI doctor accepts validator pass" || fail "CLI validator pass classification"
+load_doctor cli-semantic
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && pass "CLI doctor hard-fails semantic validator output" || fail "CLI semantic validator classification"
+load_doctor cli-timeout
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator.*timeout' "$DOCTOR_OUTPUT" && pass "CLI doctor hard-fails validator timeout" || fail "CLI timeout validator classification"
+load_doctor cli-launch
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator.*unavailable' "$DOCTOR_OUTPUT" && pass "CLI doctor hard-fails validator launch unavailable" || fail "CLI launch validator classification"
+load_doctor cli-absent
+[ "$DOCTOR_STATUS" -eq 1 ] && grep -q '\[FAIL\] ZCode CLI manifest validator.*--host-validator /absolute/path is required' "$DOCTOR_OUTPUT" && pass "CLI doctor requires an explicit validator" || fail "CLI absent validator classification"
+
+# ZCode has a single CLI host: with no validator binary on PATH the doctor
+# skips the CLI manifest check (package host) and never invokes anything.
+DOCTOR_MARKER="$TMP/ide-validator.marker"
+rm -f "$DOCTOR_MARKER"
+run_doctor ide-skip package semantic "$TMP/empty-bin"
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[SKIP\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && [ ! -e "$DOCTOR_MARKER" ] && pass "doctor without a validator binary skips and never invokes" || fail "IDE validator skip classification"
+DOCTOR_MARKER="$TMP/zcode-validator.marker"
+rm -f "$DOCTOR_MARKER"
+run_doctor zcode-skip package semantic "$TMP/empty-bin"
+[ "$DOCTOR_STATUS" -eq 0 ] && grep -q '\[SKIP\] ZCode CLI manifest validator' "$DOCTOR_OUTPUT" && [ ! -e "$DOCTOR_MARKER" ] && pass "package doctor skip never touches the host CLI" || fail "ZCode IDE validator skip classification"
+unset DOCTOR_MARKER
+
+if LAZYZCODE_DOCTOR_HOST=unknown CLAUDE_PLUGIN_ROOT="$FIXTURE" bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" >"$TMP/doctor-invalid-host.out" 2>"$TMP/doctor-invalid-host.err"; then
+    invalid_host_status=0
+else
+    invalid_host_status=$?
+fi
+[ "$invalid_host_status" -eq 2 ] && grep -q 'LAZYZCODE_DOCTOR_HOST must be package or zcode' "$TMP/doctor-invalid-host.err" && pass "doctor rejects an unknown host selector" || fail "doctor unknown host selector classification"
+
+mkdir -p "$TMP/custom-market/plugins"
+cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/custom-market/plugins/marketplace.json"
+cp -R "$FIXTURE" "$TMP/custom-market/plugins/lazyzcode"
+CUSTOM_SKILLS_PLUGIN="$TMP/custom-market/plugins/lazyzcode"
+if LAZYZCODE_DOCTOR_HOST=zcode PATH="$TMP/fake-bin:$PATH" CLAUDE_PLUGIN_ROOT="$CUSTOM_SKILLS_PLUGIN" bash "$CUSTOM_SKILLS_PLUGIN/scripts/lazyzcode-plugin-doctor.sh" --host-validator "$TMP/fake-bin/zcode" >"$TMP/doctor-custom-skills.out" 2>"$TMP/doctor-custom-skills.err" \
+    && grep -q '\[INFO\] ZCode skills: declared: 19 skill(s)' "$TMP/doctor-custom-skills.out"; then
+    pass "doctor accepts the declared ZCode skills directory"
+else
+    fail "doctor valid declared ZCode CLI skills classification"
+fi
+"$PYTHON_BIN" - "$CUSTOM_SKILLS_PLUGIN/.zcode-plugin/plugin.json" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    manifest = json.load(handle)
+manifest["skills"] = "../"
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(manifest, handle)
+PY
+if LAZYZCODE_DOCTOR_HOST=zcode PATH="$TMP/fake-bin:$PATH" CLAUDE_PLUGIN_ROOT="$CUSTOM_SKILLS_PLUGIN" bash "$CUSTOM_SKILLS_PLUGIN/scripts/lazyzcode-plugin-doctor.sh" --host-validator "$TMP/fake-bin/zcode" >"$TMP/doctor-escaping-skills.out" 2>"$TMP/doctor-escaping-skills.err"; then
+    fail "doctor must reject an escaping ZCode CLI skills directory"
+elif grep -qE '(plugin manifest skills must declare skills|path escapes plugin root)' "$TMP/doctor-escaping-skills.out"; then
+    pass "doctor rejects an escaping ZCode CLI skills directory"
+else
+    fail "doctor escaping ZCode CLI skills classification"
+fi
+
+cp -R "$FIXTURE" "$TMP/broken-plugin"
+rm -f "$TMP/broken-plugin/LICENSE"
+if LAZYZCODE_DOCTOR_HOST=zcode CLAUDE_PLUGIN_ROOT="$TMP/broken-plugin" LAZYZCODE_VERIFY_REGRESSION_DEPTH=1 bash "$TMP/broken-plugin/scripts/lazyzcode-verify.sh" >"$TMP/broken-package.json" 2>"$TMP/broken-package.stderr"; then
+    fail "aggregate verifier must fail an intentional package break"
+else
+    pass "aggregate verifier stays red for an intentional package break"
+fi
+if "$PYTHON_BIN" - "$TMP/broken-package.json" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["doctor"] == "fail"
+assert payload["checks"]["doctor"]["status"] == "fail"
+assert payload["regression_inventory"] == "pass"
+assert payload["all_pass"] is False
+PY
+then
+    pass "aggregate red summary identifies the doctor package failure"
+else
+    fail "aggregate red summary identifies the doctor package failure"
+fi
+
+STATE_RUN="$TMP/.lazyzcode/runs/legacy"
+mkdir -p "$STATE_RUN"
+printf '%s\n' '{"status":"created","tasks":[]}' > "$STATE_RUN/state.json"
+
+run_state_doctor() {
+    local label="$1"
+    STATE_OUTPUT="$TMP/state-$label.out"
+    if LAZYZCODE_DOCTOR_HOST=zcode PATH="$TMP/fake-bin:$PATH" CLAUDE_PLUGIN_ROOT="$FIXTURE" bash "$FIXTURE/scripts/lazyzcode-plugin-doctor.sh" --host-validator "$TMP/fake-bin/zcode" >"$STATE_OUTPUT" 2>"$STATE_OUTPUT.err"; then
+        STATE_STATUS=0
+    else
+        STATE_STATUS=$?
+    fi
+}
+
+printf '%s\n' '{"event":"created"}' > "$STATE_RUN/events.jsonl"
+run_state_doctor valid-jsonl
+[ "$STATE_STATUS" -eq 0 ] && grep -q '\[PASS\] Run state drift/evidence/boundaries' "$STATE_OUTPUT" && ! grep -q '\[WARN\].*legacy RUN_ID' "$STATE_OUTPUT" && pass "doctor accepts strict valid JSONL" || fail "valid JSONL classification"
+
+printf '%s\n' 'RUN_ID: legacy' '{"event":"created"}' > "$STATE_RUN/events.jsonl"
+cp "$STATE_RUN/events.jsonl" "$TMP/legacy-events.before"
+run_state_doctor legacy-first-line
+[ "$STATE_STATUS" -eq 0 ] && grep -q '\[WARN\].*legacy: events.jsonl line 1 legacy RUN_ID header preserved unchanged; not a JSON event; excluded from package-health failure' "$STATE_OUTPUT" && cmp -s "$TMP/legacy-events.before" "$STATE_RUN/events.jsonl" && pass "doctor warns and preserves a matching first-line legacy RUN_ID header" || fail "legacy first-line RUN_ID classification"
+
+printf '%s\n' 'RUN_ID: stale-run' '{"event":"created"}' > "$STATE_RUN/events.jsonl"
+run_state_doctor stale-legacy-header
+[ "$STATE_STATUS" -eq 1 ] && grep -q 'events.jsonl line 1 parse error' "$STATE_OUTPUT" && pass "doctor rejects a stale mismatched RUN_ID header" || fail "stale RUN_ID header classification"
+
+printf '%s\n' 'RANDOM_HEADER: legacy' '{"event":"created"}' > "$STATE_RUN/events.jsonl"
+run_state_doctor random-header
+[ "$STATE_STATUS" -eq 1 ] && grep -q 'events.jsonl line 1 parse error' "$STATE_OUTPUT" && pass "doctor rejects a random first-line header" || fail "random first-line header classification"
+
+printf '%s\n' '{"event":"created"}' 'RUN_ID: legacy' > "$STATE_RUN/events.jsonl"
+run_state_doctor legacy-second-line
+[ "$STATE_STATUS" -eq 1 ] && grep -q 'events.jsonl line 2 parse error' "$STATE_OUTPUT" && pass "doctor rejects a legacy RUN_ID header after line one" || fail "legacy subsequent-line RUN_ID classification"
+
+printf '%s\n' '{"event":' > "$STATE_RUN/events.jsonl"
+run_state_doctor malformed-json
+[ "$STATE_STATUS" -eq 1 ] && grep -q 'events.jsonl line 1 parse error' "$STATE_OUTPUT" && pass "doctor rejects malformed JSON events" || fail "malformed JSON event classification"
+
+printf 'Passed: %s\nFailed: %s\n' "$PASS" "$FAIL"
+[ "$FAIL" -eq 0 ]

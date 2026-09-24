@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "contract_version": "1.0.0",
+  "boundary": {
+    "required_common_fields": ["session_id", "cwd", "hook_event_name"],
+    "omitted_common_fields": ["transcript_path"],
+    "max_payload_bytes": 65536,
+    "timeout_seconds": 5,
+    "exit_codes": { "accepted": 0, "rejected": 2, "internal_error": 70 },
+    "active_statuses": ["active", "paused", "created", "planning", "executing", "blocked", "verifying", "reviewing"]
+  },
+  "events": {
+    "SessionStart": { "consumer": "session-bootstrap", "mode": "concrete", "completion_authority": false, "invalidates": [] },
+    "UserPromptSubmit": { "consumer": "adaptive-intake", "mode": "concrete", "completion_authority": false, "invalidates": [] },
+    "PreToolUse": { "consumer": "tool-permission-policy", "mode": "concrete", "completion_authority": false, "invalidates": [] },
+    "PostToolUse": { "consumer": "run-event-ledger", "mode": "concrete", "completion_authority": false, "invalidates": [] },
+    "PostToolUseFailure": { "consumer": "failure-recovery", "mode": "concrete", "completion_authority": false, "invalidates": [] },
+    "Stop": { "consumer": "completion-gate", "mode": "concrete", "completion_authority": true, "invalidates": [] },
+    "PermissionRequest": { "consumer": "permission-audit", "mode": "advisory", "completion_authority": false, "invalidates": [], "required_fields": ["request_id", "tool_name"] }
+  }
+}

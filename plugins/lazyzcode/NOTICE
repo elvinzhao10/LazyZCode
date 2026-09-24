@@ -1,0 +1,67 @@
+NOTICE
+
+LazyQoder is a learning project adapted from LazyCodex for Qoder CN (Alibaba's
+successor to Tongyi Lingma). LazyCodex is the main source for portions of the
+workflow-harness design and skill text; OmO (oh-my-openagent), Copyright (c)
+2026 Yeongyu Kim, is an upstream project referenced by LazyCodex.
+
+Upstream sources and licenses:
+- LazyCodex: https://github.com/code-yeongyu/lazycodex — MIT.
+- OmO: https://github.com/code-yeongyu/oh-my-openagent — Sustainable Use
+  License (SUL).
+
+Sibling ports:
+- LazyBuddy: https://github.com/elvinzhao10/LazyBuddy — MIT (CodeBuddy IDE/CLI
+  and WorkBuddy).
+- LazyTrae: https://github.com/elvinzhao10/LazyTrae — MIT (Trae IDE/Work/CLI).
+
+This repository includes material adapted from LazyCodex under its stated MIT
+license; files that preserve upstream language identify that provenance.
+LazyQoder also contains Qoder CN-specific implementation. Neither LazyCodex nor
+OmO is an operational dependency. OmO is listed for upstream attribution; this
+notice does not relicense OmO material under different terms.
+
+## Optional tooling dependencies
+
+LazyQoder may provision the following tools only through caller-selected,
+receipt-owned lifecycle commands. They are not LazyCodex or OmO dependencies
+and are not installed globally or into a target repository.
+
+- `@vscode/ripgrep`, MIT:
+  https://github.com/microsoft/vscode-ripgrep
+- `@ast-grep/cli`, MIT:
+  https://github.com/ast-grep/ast-grep
+- `@colbymchenry/codegraph`, MIT:
+  https://github.com/colbymchenry/codegraph
+- `typescript`, Apache-2.0:
+  https://github.com/microsoft/TypeScript
+- `typescript-language-server`, Apache-2.0:
+  https://github.com/typescript-language-server/typescript-language-server
+- `basedpyright`, MIT:
+  https://github.com/detachhead/basedpyright
+
+The MIT License of the LazyCodex reference layer is reproduced below.
+
+---
+
+MIT License
+
+Copyright (c) 2026 Yeongyu Kim
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

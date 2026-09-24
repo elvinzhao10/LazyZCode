@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "version": "1.3.1",
+  "identity": {
+    "marketplace": "lazyzcode",
+    "owner": "LazyZCode",
+    "plugin": "lazyzcode",
+    "install_id": "lazyzcode@lazyzcode"
+  },
+  "artifacts": {
+    "plugins/marketplace.json": "ad5974828ae86d3edf53706271225b50f953bae1068058dc0447e031577dee21",
+    "plugins/lazyzcode/.zcode-plugin/plugin.json": "cc74d29f67777f00f6681031c98fa2c20ccc2d34126ce964197c65d94d8b7aad"
+  },
+  "payload": {
+    "method": "Deterministic inventory: walk each payload root (skills, commands, agents, hooks, mcp) recursively from the plugin root; reject symlinks and non-regular files; skip entries named .gitkeep; include only regular files with st_nlink == 1. Record {path, sha256} per file with the POSIX path relative to plugins/lazyzcode and sha256 over the file bytes. Append policy.files entries the same way. Sort records byte-wise (Buffer.compare) by path. file_count is the record count; inventory_sha256 is the SHA-256 of the UTF-8 JSON serialization of the sorted record array (JSON.stringify with default separators, no whitespace, insertion order = sorted path order).",
+    "roots": [
+      "skills",
+      "commands",
+      "agents",
+      "hooks",
+      "mcp"
+    ],
+    "files": [
+      ".mcp.json"
+    ],
+    "file_count": 72,
+    "inventory_sha256": "07e88e5c4dd175191dc56558bf94ce9b53b6de9f795497178df970ac8363f7a3"
+  },
+  "default_routes": {
+    "zcode": "zcode-marketplace",
+    "zcode-ide": "zcode-marketplace"
+  },
+  "fallback": {
+    "route": "manual-skills-mcp-fallback",
+    "excludes": [
+      "commands",
+      "agents",
+      "hooks"
+    ],
+    "asset_manifest": "plugins/lazyzcode/asset-source-manifest.v1.json",
+    "receipt_required_for_removal": true,
+    "coexists_with_marketplace": false
+  }
+}

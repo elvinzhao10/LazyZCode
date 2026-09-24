@@ -1,0 +1,24 @@
+{
+  "name": "lazyzcode",
+  "version": "1.3.1",
+  "description": "LazyZCode evidence-gated planning, execution, and review workflows for ZCode.",
+  "description_i18n": {
+    "en": "LazyZCode evidence-gated planning, execution, and review workflows for ZCode.",
+    "zh-CN": "LazyZCode 证据门控的计划、执行与评审工作流，适配 ZCode。"
+  },
+  "author": {
+    "name": "LazySeries"
+  },
+  "license": "MIT",
+  "skills": "skills",
+  "commands": "commands",
+  "agents": "agents",
+  "hooks": "./hooks/hooks.json",
+  "userConfig": {
+    "mcp_mode": {
+      "type": "string",
+      "default": "",
+      "description": "MCP profile: direct, assisted, planned, orchestrated, or long-horizon. Empty defers the profile gate."
+    }
+  }
+}
