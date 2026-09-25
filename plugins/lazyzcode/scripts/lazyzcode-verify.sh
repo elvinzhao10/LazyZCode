@@ -400,6 +400,12 @@ run_language_tests() {
     while IFS= read -r test_path; do
         node_test_paths+=("$test_path")
     done < <(find "${PLUGIN_ROOT}/tests" -maxdepth 1 -type f -name '*.test.js' -print | LC_ALL=C sort)
+    # Contract-schema tests live under contracts/tests and must run in the
+    # same phase — a stale digest pin or drifted hook contract otherwise
+    # ships invisibly (this class of failure reached a release once).
+    while IFS= read -r test_path; do
+        node_test_paths+=("$test_path")
+    done < <(find "${PLUGIN_ROOT}/contracts/tests" -maxdepth 1 -type f -name '*.test.js' -print | LC_ALL=C sort)
     if [ "${#node_test_paths[@]}" -eq 0 ]; then
         printf 'ERROR: no package-local Node tests found\n' >&2
         NODE_TESTS_RESULT="fail"

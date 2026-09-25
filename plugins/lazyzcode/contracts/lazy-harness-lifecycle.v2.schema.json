@@ -10,7 +10,7 @@
     },
     "schema_version": { "const": 2, "type": "integer" },
     "receipt_id": { "pattern": "^[a-z][a-z0-9-]{2,63}$", "type": "string" },
-    "product": { "enum": ["LazyBuddy", "LazyTrae"], "type": "string" },
+    "product": { "enum": ["LazyBuddy", "LazyTrae", "LazyZCode"], "type": "string" },
     "origin": { "type": "string" },
     "commit_sha": { "$ref": "#/definitions/full_sha" },
     "manifest": {

@@ -37,7 +37,13 @@ EXPLANATION_PATTERN: Final = re.compile(
 QUOTED_COMMAND_PATTERN: Final = re.compile(
     r"show (?:me|the|us)?\s*(?:the|that)?\s*command\b|"
     r"\bthe command to\b|"
-    r"`[^`]+`|"
+    # A bare backtick span is usually a filename or code reference in an
+    # implementation request ("fix the bug in `src/parser.js`"), so it only
+    # signals a shown command when framed with command-looking context
+    # (imperative inside the span, or "run/execute/use this command").
+    r"(?:\b(?:run|execute|use|try)\s+(?:this\s+|that\s+|the\s+)?command\s*`[^`]+`)|"
+    # "`x` is ..." is descriptive framing (talking ABOUT the command).
+    r"`[^`]+`\s+is\b|"
     r"\b(?:example|sample)\s+(?:command|script)\b",
     re.I,
 )
@@ -63,21 +69,23 @@ def derive_execution_intent(request: str, context: dict | None = None) -> str:
     """Resolve the persisted execution intent.
 
     Priority:
-      1. An explicit persisted intent supplied via ``context["execution_intent"]``.
-      2. An explicit plan-only phrase in the request -> ``plan_only``.
+      1. An explicit plan-only phrase in the CURRENT request -> ``plan_only``.
+         Current instructions outrank memory: a persisted ``execute`` intent
+         can never override a present-tense "just plan, do not implement".
+      2. A persisted intent supplied via ``context["execution_intent"]``.
       3. Explanation / documentation framing, or a quoted/referenced command
          (shown, not run) -> ``plan_only``.
       4. A clear implementation verb -> ``execute``.
       5. Otherwise (ambiguous) -> ``plan_only`` (default; ambiguous approval can
          never grant execution authority).
     """
+    active_request = current_action_text(request)
+    if PLAN_ONLY_PATTERN.search(active_request) is not None:
+        return "plan_only"
     if isinstance(context, dict):
         persisted = normalise_intent(context.get("execution_intent"))
         if persisted is not None:
             return persisted
-    active_request = current_action_text(request)
-    if PLAN_ONLY_PATTERN.search(active_request) is not None:
-        return "plan_only"
     if EXPLANATION_PATTERN.search(active_request) is not None:
         return "plan_only"
     if QUOTED_COMMAND_PATTERN.search(active_request) is not None:

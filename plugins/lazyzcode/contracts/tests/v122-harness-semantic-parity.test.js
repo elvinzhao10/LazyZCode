@@ -44,7 +44,16 @@ function adaptive(root, prompt, adaptiveContext) {
     cwd: root, env: { ...process.env, CLAUDE_PLUGIN_ROOT: pluginRoot, CWD: root }, input,
   });
   assert.equal(result.status, 0, result.stderr);
-  return JSON.parse(result.stdout);
+  // The shipped hook emits ZCode-safe JSON: the machine-readable adaptive
+  // directive rides inside "additionalContext" after a fixed marker.
+  const outer = JSON.parse(result.stdout);
+  const context = outer.additionalContext;
+  assert.equal(typeof context, 'string', 'hook output lost the additionalContext contract');
+  const marker = 'Adaptive intake directive: ';
+  const start = context.indexOf(marker) + marker.length;
+  const directive = JSON.parse(context.slice(start));
+  assert.equal(typeof directive, 'object');
+  return directive;
 }
 
 test('v1.2.3 public adaptive adapter selects behavior without fixture projection', (t) => {

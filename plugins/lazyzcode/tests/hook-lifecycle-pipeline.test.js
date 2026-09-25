@@ -192,3 +192,30 @@ test('refuses malformed oversized incomplete and unsupported payloads with typed
     assert.equal(JSON.parse(result.stderr).reason, reason);
   }
 });
+
+test('stop-gate reads run state through argv and never executes a hostile project path', (t) => {
+  // Given: a project whose directory name contains a Python quote-escape.
+  // Before the argv fix, stop-gate interpolated the state path into
+  // `python3 -c "…open('<path>')…"` and a name like this one executed code.
+  const hostileName = "inj'+__import__('os').system('touch ./PWNED')+'";
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lz-hostile-'));
+  const hostileRoot = path.join(projectRoot, hostileName);
+  fs.mkdirSync(path.join(hostileRoot, '.lazyzcode', 'runs', 'run-1'), { recursive: true });
+  fs.writeFileSync(path.join(hostileRoot, '.lazyzcode', 'runs', 'run-1', 'state.json'), '{"status":"active"}\n');
+  t.after(() => fs.rmSync(projectRoot, { recursive: true, force: true }));
+
+  // When: a Stop event fires in the hostile project.
+  const payload = JSON.stringify({
+    session_id: 'hostile-quote-check', cwd: hostileRoot,
+    hook_event_name: 'Stop', stop_hook_active: false,
+  });
+  const result = spawnSync('bash', [path.join(pluginRoot, 'scripts', 'hooks', 'stop-gate.sh')], {
+    input: payload, encoding: 'utf8',
+    env: { ...process.env, CLAUDE_PLUGIN_ROOT: pluginRoot, CWD: hostileRoot, CLAUDE_PROJECT_DIR: hostileRoot },
+  });
+
+  // Then: the gate treats the run as active (exit 0, completion reminder)
+  // and no interpolated payload ever executed.
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(fs.existsSync(path.join(projectRoot, 'PWNED')), false, 'arbitrary code executed');
+});

@@ -442,19 +442,33 @@ def append_event(
     stored["event_id"] = event_id
 
     path = ledger_path(project_root, state_root)
-    existing = load_events(project_root, state_root=state_root)  # raises if malformed
 
-    for prior in existing:
-        if prior.get("event_id") == event_id:
-            if _canonical(prior) == _canonical(stored):
-                return prior  # idempotent re-append
-            raise DuplicateIdConflictError(
-                f"event_id {event_id!r} already used with different content"
-            )
+    # Validate-and-append under one lock: validating against a snapshot taken
+    # before the lock would let two concurrent writers both pass against the
+    # same snapshot and append conflicting events (TOCTOU).
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.with_name(path.name + ".lock")
+    with open(lock_path, "w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            existing = load_events(project_root, state_root=state_root)  # raises if malformed
 
-    state = _classify(existing)
-    _validate_references(stored, state)
-    _append_raw(path, stored)
+            for prior in existing:
+                if prior.get("event_id") == event_id:
+                    if _canonical(prior) == _canonical(stored):
+                        return prior  # idempotent re-append
+                    raise DuplicateIdConflictError(
+                        f"event_id {event_id!r} already used with different content"
+                    )
+
+            state = _classify(existing)
+            _validate_references(stored, state)
+            with open(path, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(stored, ensure_ascii=False) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
     return stored
 
 

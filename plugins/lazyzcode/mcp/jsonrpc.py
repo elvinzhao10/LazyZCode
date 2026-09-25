@@ -15,8 +15,16 @@ def _valid_id(value):
     return isinstance(value, int) or (isinstance(value, float) and math.isfinite(value))
 
 
+# Bound one JSON-RPC frame the same way the hooks bound their stdin (1 MiB):
+# a hostile or runaway writer must not balloon host memory through stdio.
+MAX_LINE_BYTES = 1024 * 1024
+
+
 def serve(handler):
     for line in sys.stdin:
+        if len(line.encode("utf-8", "replace")) > MAX_LINE_BYTES:
+            _error(-32600, "Invalid Request: frame exceeds 1 MiB limit")
+            continue
         try:
             request = json.loads(line)
         except json.JSONDecodeError:

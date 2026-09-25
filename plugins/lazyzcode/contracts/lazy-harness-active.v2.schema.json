@@ -13,7 +13,7 @@
       "type": "integer"
     },
     "product": {
-      "enum": ["LazyBuddy", "LazyTrae"],
+      "enum": ["LazyBuddy", "LazyTrae", "LazyZCode"],
       "type": "string"
     },
     "active_release": {

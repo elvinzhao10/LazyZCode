@@ -81,7 +81,7 @@ ACTIVE_RUN=""
 for run_dir in "$RUNS_DIR"/*/; do
     state_file="${run_dir}state.json"
     if [ -f "$state_file" ]; then
-        STATUS=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('status',''))" 2>/dev/null || echo "")
+        STATUS=$(python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(d.get("status", ""))' "$state_file" 2>/dev/null || echo "")
         if [ "$STATUS" = "active" ] || [ "$STATUS" = "paused" ] || [ "$STATUS" = "executing" ] || [ "$STATUS" = "verifying" ] || [ "$STATUS" = "reviewing" ] || [ "$STATUS" = "blocked" ] || [ "$STATUS" = "created" ] || [ "$STATUS" = "planning" ]; then
             ACTIVE_RUN="$run_dir"
             ACTIVE_STATE="$state_file"
@@ -94,7 +94,7 @@ if [ -z "$ACTIVE_RUN" ]; then
     exit 0
 fi
 
-PLAN_REF=$(python3 -c "import json; d=json.load(open('$ACTIVE_STATE')); print(d.get('plan_reference',''))" 2>/dev/null || echo "")
+PLAN_REF=$(python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(d.get("plan_reference", ""))' "$ACTIVE_STATE" 2>/dev/null || echo "")
 [ -n "$PLAN_REF" ] || exit 0
 
 if [[ "$PLAN_REF" == /* ]]; then

@@ -93,7 +93,16 @@ function promoteRelease(paths, options) {
     if (receiptInstalled) fs.unlinkSync(receiptPath);
     if (targetInstalled) {
       removeInventory(target, prepared.stagedInventory);
-      fs.rmdirSync(target);
+      // Best-effort directory removal: a stray untracked file (e.g. a
+      // Finder-created .DS_Store) must not mask the original promotion error
+      // and strand a half-installed release message.
+      try {
+        fs.rmdirSync(target);
+      } catch (cleanupError) {
+        if (cleanupError && cleanupError.code !== 'ENOENT') {
+          process.stderr.write(`promotion cleanup left ${target}: ${cleanupError.message}\n`);
+        }
+      }
     }
     throw error;
   }

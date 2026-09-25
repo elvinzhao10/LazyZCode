@@ -177,15 +177,16 @@ def handle(req, notification):
                 if not os.path.isfile(fp):
                     err("file not found: " + path)
                     return
-                src = open(fp, errors="ignore").read().split("\n")
+                with open(fp, errors="ignore") as handle:
+                    src = handle.read().split("\n")
                 decl = re.compile(r"\b(function|class|const|let|def|func|interface|type|enum|struct|impl)\s+([A-Za-z_][A-Za-z0-9_]*)")
-                out = "symbols in %s:\n" % path
+                lines_out = []
                 count = 0
                 for i, line in enumerate(src, 1):
                     for m in decl.finditer(line):
-                        out += "  %s:%d  %s %s\n" % (path, i, m.group(1), m.group(2))
+                        lines_out.append("  %s:%d  %s %s" % (path, i, m.group(1), m.group(2)))
                         count += 1
-                out = "symbols in %s (%d):\n" % (path, count) + "\n".join(out.split("\n")[1:])
+                out = "symbols in %s (%d):\n" % (path, count) + "\n".join(lines_out)
                 tool_result(out)
 
             else:

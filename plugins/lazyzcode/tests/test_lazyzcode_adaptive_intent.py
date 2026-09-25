@@ -91,3 +91,28 @@ def test_current_message_intent_ignores_inert_workflow_mentions(
     _case: str, prompt: str, expected: str,
 ) -> None:
     assert classify_adaptive_decision(prompt)["execution_intent"] == expected
+
+
+def test_backticked_filename_keeps_execution_authority() -> None:
+    # Regression: a bare backtick span is usually a filename or code reference
+    # in an ordinary implementation request ("fix the bug in `src/parser.js`"),
+    # not a shown command. It must not strip execution authority.
+    assert derive_execution_intent("fix the bug in `src/parser.js` and run the tests") == "execute"
+
+
+def test_shown_command_still_plans() -> None:
+    # S4 stays intact: framed shown-commands are displayed, not executed.
+    assert derive_execution_intent("show me the command to run `npm test`") == "plan_only"
+    assert derive_execution_intent("run this command `npm run build` and tell me the output") == "plan_only"
+
+
+def test_current_plan_only_phrasing_outranks_persisted_execute() -> None:
+    # Nothing in memory can override current instructions: a persisted
+    # `execute` intent must lose to present-tense plan-only phrasing.
+    assert derive_execution_intent(
+        "just plan this, do not implement", {"execution_intent": "execute"},
+    ) == "plan_only"
+    # Without current plan-only phrasing the persisted intent still applies.
+    assert derive_execution_intent(
+        "continue with the next task", {"execution_intent": "execute"},
+    ) == "execute"

@@ -50,7 +50,7 @@ function validator() {
   return require(validatorPath);
 }
 
-function trustedContext(input, projectRoot = path.resolve(__dirname, '..', '..', '..')) {
+function trustedContext(input, projectRoot = path.resolve(__dirname, '..', '..', '..', '..')) {
   return {
     projectRoot,
     planCommands: input.command_validation.commands.map(({ argv }) => argv),

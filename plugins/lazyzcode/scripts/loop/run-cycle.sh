@@ -34,9 +34,22 @@ TASK_ID=$(python3 - "$TASK_JSON" <<'PY'
 import json
 import sys
 
-print(json.loads(sys.argv[1])['id'])
+try:
+    task = json.loads(sys.argv[1])
+    value = task["id"]
+except (json.JSONDecodeError, KeyError, TypeError):
+    print("")
+    raise SystemExit(0)
+if not isinstance(value, str) or not value.strip():
+    print("")
+    raise SystemExit(0)
+print(value)
 PY
 )
+if [ -z "$TASK_ID" ]; then
+    echo '{"status":"error","reason":"next-task returned a task without a usable string id"}' >&2
+    exit 1
+fi
 
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TMP_FILE=$(mktemp "$RUN_DIR/.state.json.XXXXXX")
@@ -67,6 +80,12 @@ import sys
 print(json.load(open(sys.argv[1]))['iteration']['count'])
 PY
 )
+case "$ITER_COUNT" in
+    ''|*[!0-9]*)
+        echo '{"status":"error","reason":"run state has a corrupt or missing iteration count"}' >&2
+        exit 1
+        ;;
+esac
 if [ $((ITER_COUNT % 5)) -eq 0 ]; then
     CHECKPOINT_SCRIPT="$PLUGIN_ROOT/scripts/state/checkpoint.sh"
     if [ -x "$CHECKPOINT_SCRIPT" ]; then

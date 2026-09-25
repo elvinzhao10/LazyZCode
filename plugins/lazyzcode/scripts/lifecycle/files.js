@@ -50,6 +50,19 @@ function atomicJson(root, target, value, mode = 0o600) {
     fs.closeSync(descriptor);
     descriptor = undefined;
     fs.renameSync(temporary, target);
+    // Persist the rename itself: without a directory fsync a crash right
+    // after the rename can resurrect the previous file contents.
+    try {
+      const dirDescriptor = fs.openSync(path.dirname(target), 'r');
+      try {
+        fs.fsyncSync(dirDescriptor);
+      } finally {
+        fs.closeSync(dirDescriptor);
+      }
+    } catch {
+      // Directory fsync is unsupported on some platforms; the file fsync
+      // above still bounds the loss window.
+    }
   } finally {
     if (descriptor !== undefined) fs.closeSync(descriptor);
     if (fs.existsSync(temporary)) fs.rmSync(temporary, { force: true });
