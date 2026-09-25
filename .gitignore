@@ -1,46 +1,45 @@
-# Optional local reference material (not part of the release package)
+# ---------------------------------------------------------------------------
+# LazyZCode — gitignore
+# ---------------------------------------------------------------------------
+# Rule of thumb: runtime state and dependency trees are local; fixtures,
+# receipts, and pinned digests are release content. If a fixture is caught by
+# a broad pattern below, add a negation for it AND verify its sha256sums.txt
+# entry still matches after any change.
+
+# --- Runtime state (regenerated per session; never a release artifact) -----
+.lazyzcode/
+# Pre-rename state dirs, so local sessions in old checkouts never leak in.
+.lazycode/
+.lazyqoder/
+.lazyworkbuddy/
+.workbuddy/
+.omo/
+# Session-start bootstrap in odd cwds has created nested state dirs.
+**/.lazyzcode/
+**/.lazycode/
+
+# Local test/live-verification scratch
+.live-test/
 dev/
 
-# WorkBuddy workspace state (managed by the WorkBuddy app)
-.workbuddy/
+# Internal research material for the port (never shipped)
+.study/
 
-# LazyZCode runtime state (runs, checkpoints, context — regenerated per session)
-.lazyzcode/
-
-# Pre-rename LazyWorkBuddy state; retained so local sessions do not become
-# release artifacts after upgrading to LazyZCode.
-.lazyworkbuddy/
-
-# Legacy runtime-state test artifacts
-.omo/
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon?
-._*
-.Spotlight-V100
-.Trashes
-
-# Node.js
+# --- Dependency trees and caches -------------------------------------------
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.eggs/
 *.egg-info/
 dist/
 build/
-.eggs/
-*.egg
 
-# Editor / IDE
+# --- Hygiene: debug drops and editor/OS junk --------------------------------
+*.dbg
 *.swp
 *.swo
 *~
@@ -48,15 +47,33 @@ build/
 .idea/
 *.sublime-project
 *.sublime-workspace
-
-# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Logs
+# --- Logs -------------------------------------------------------------------
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log
 
-# Internal research material for the port (never shipped)
-.study/
+# --- Local-only host configuration ------------------------------------------
+# Shareable ZCode workspace settings may be committed; the local-only file
+# and any personal credential state must not.
+.zcode/settings.local.json
+.zcode/*.local.json
+
+# --- Pinned fixture evidence (negations — release content) ------------------
+# The completion/outcome fixtures sha-pin their artifact logs; the blanket
+# *.log pattern above must never swallow them.
+!plugins/lazyzcode/contracts/fixtures/**/*.log
+!plugins/lazyzcode/tests/fixtures/**/*.log
