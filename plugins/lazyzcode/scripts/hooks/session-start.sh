@@ -107,10 +107,35 @@ if [ -d "$RUNS_DIR" ]; then
     for run_dir in "$RUNS_DIR"/*/; do
         state_file="${run_dir}state.json"
         if [ -f "$state_file" ]; then
-            STATUS=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('status',''))" 2>/dev/null || echo "")
+            STATUS=$(python3 - "$state_file" <<'PY' 2>/dev/null || echo ""
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(1)
+print(d.get('status', ''))
+PY
+)
             if [ "$STATUS" = "active" ] || [ "$STATUS" = "paused" ] || [ "$STATUS" = "executing" ] || [ "$STATUS" = "verifying" ] || [ "$STATUS" = "reviewing" ]; then
-                PLAN=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('plan_name',''))" 2>/dev/null || echo "unknown")
-                PROGRESS=$(python3 -c "import json; d=json.load(open('$state_file')); p=d.get('progress',{}); print(f\"{p.get('completed_checkboxes',p.get('completed',0))}/{p.get('total_checkboxes',p.get('total',0))}\")" 2>/dev/null || echo "?/?")
+                PLAN=$(python3 - "$state_file" <<'PY' 2>/dev/null || echo "unknown"
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(1)
+print(d.get('plan_name', ''))
+PY
+)
+                PROGRESS=$(python3 - "$state_file" <<'PY' 2>/dev/null || echo "?/?"
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(1)
+p = d.get('progress', {})
+print(f"{p.get('completed_checkboxes', p.get('completed', 0))}/{p.get('total_checkboxes', p.get('total', 0))}")
+PY
+)
                 note "(LazyZCode): Active run found: $PLAN (status: $STATUS, progress: $PROGRESS)"
                 note "(LazyZCode): Run /lazy-start-work or ask to continue the planned work."
             fi

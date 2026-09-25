@@ -83,8 +83,8 @@ if ! [[ "$NODE_TEST_CONCURRENCY" =~ ^[1-4]$ ]]; then
     printf 'ERROR: LAZYZCODE_NODE_TEST_CONCURRENCY must be an integer from 1 through 4\n' >&2
     exit 2
 fi
-if [[ "$VERIFY_SUITE" != "all" && "$VERIFY_SUITE" != "core" && "$VERIFY_SUITE" != "lifecycle" ]]; then
-    printf 'ERROR: LAZYZCODE_VERIFY_SUITE must be all, core, or lifecycle\n' >&2
+if [[ "$VERIFY_SUITE" != "all" && "$VERIFY_SUITE" != "core" && "$VERIFY_SUITE" != "lifecycle" && "$VERIFY_SUITE" != "language" ]]; then
+    printf 'ERROR: LAZYZCODE_VERIFY_SUITE must be all, core, lifecycle, or language\n' >&2
     exit 2
 fi
 
@@ -221,6 +221,11 @@ run_isolated_test() {
 run_regression_inventory() {
     local test_name test_path test_timeout candidate inventory_failed=false
     local tests_dir="${PLUGIN_ROOT}/tests"
+    if [ "$VERIFY_SUITE" = "language" ]; then
+        REGRESSION_INVENTORY_RESULT="skipped-suite"
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="skipped-suite"
+        return
+    fi
     # The normal release gate owns every package-local *-regression.sh. The
     # explicit-root parity checks intentionally remain release-only.
     local core_tests=(
@@ -391,7 +396,11 @@ run_language_tests() {
         PYTHON_TESTS_RESULT="skipped-nested"
         return
     fi
-    if [ "$VERIFY_SUITE" != "all" ]; then
+    # Language tests (which include the contracts/tests digest pins and hook
+    # contract checks) run in the `all` suite and in the dedicated `language`
+    # suite that gates PR and release CI. The fast `core` suite keeps its
+    # original scope; the timing-sensitive `lifecycle` suite skips them.
+    if [ "$VERIFY_SUITE" != "all" ] && [ "$VERIFY_SUITE" != "language" ]; then
         NODE_TESTS_RESULT="skipped-suite"
         PYTHON_TESTS_RESULT="skipped-suite"
         return
@@ -445,7 +454,7 @@ run_language_tests() {
     rm -f "$result_file"
 }
 
-if [ "$VERIFY_SUITE" != "lifecycle" ]; then
+if [ "$VERIFY_SUITE" != "lifecycle" ] && [ "$VERIFY_SUITE" != "language" ]; then
     run_check doctor "${SCRIPTS_DIR}/lazyzcode-plugin-doctor.sh"  DOCTOR_RESULT
     run_check smoke "${SCRIPTS_DIR}/lazyzcode-smoke-test.sh"     SMOKE_RESULT
     run_check docs "${SCRIPTS_DIR}/lazyzcode-docs-check.sh"     DOCS_RESULT

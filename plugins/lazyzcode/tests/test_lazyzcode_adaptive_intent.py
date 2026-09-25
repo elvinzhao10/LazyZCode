@@ -116,3 +116,15 @@ def test_current_plan_only_phrasing_outranks_persisted_execute() -> None:
     assert derive_execution_intent(
         "continue with the next task", {"execution_intent": "execute"},
     ) == "execute"
+
+
+def test_explanation_and_shown_commands_never_gain_execution_authority_from_memory() -> None:
+    # The plan-only invariant is absolute: an explanation or a shown command
+    # must not grant execution authority — a persisted `execute` intent cannot
+    # change that. Memory only speaks when the current request is silent.
+    assert derive_execution_intent(
+        "explain what you just did", {"execution_intent": "execute"},
+    ) == "plan_only"
+    assert derive_execution_intent(
+        "show me the command to run `npm test`", {"execution_intent": "execute"},
+    ) == "plan_only"

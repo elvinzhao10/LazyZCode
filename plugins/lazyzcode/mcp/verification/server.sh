@@ -199,7 +199,15 @@ with open(os.environ['STATE_RUN_DIR'] + '/events.jsonl','a') as f: f.write(json.
         reply "$RESULT" ;;
       list_gate_results)
         SF=$(resolve_run_state "$RID") || { err "invalid or unsafe run_id"; continue; }
-        reply "$(python3 -c "import json; d=json.load(open('$SF')); print(json.dumps(d.get('verification_gates',[])))")" ;;
+        reply "$(python3 - "$SF" <<'PY' 2>/dev/null
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(1)
+print(json.dumps(d.get('verification_gates', [])))
+PY
+)" ;;
       create_repair_task)
         resolve_run_state "$RID" >/dev/null || { err "invalid or unsafe run_id"; continue; }
         FTID=$(arg_req failed_task_id); CLS=$(arg_req classification)

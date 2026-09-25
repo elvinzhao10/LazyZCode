@@ -22,7 +22,7 @@ Run these checks from `plugins/lazyzcode/` before requesting review:
 
 ```bash
 bash scripts/lazyzcode-load-check.sh
-bash scripts/lazyzcode-verify.sh            # suites: LAZYZCODE_VERIFY_SUITE=core|all|lifecycle (default all)
+bash scripts/lazyzcode-verify.sh            # suites: LAZYZCODE_VERIFY_SUITE=core|all|lifecycle|language (default all)
 bash tests/publication-regression.sh
 node scripts/check-product-naming.js       # run from the repository root
 ```

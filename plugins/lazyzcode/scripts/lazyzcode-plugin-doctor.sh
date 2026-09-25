@@ -395,7 +395,11 @@ done
 # 5. Hooks scaffold exists
 if [ -f "${PLUGIN_ROOT}/hooks/hooks.json" ]; then
     check "hooks/hooks.json exists" ok
-    if "$PYTHON_BIN" -c "import json; json.load(open('${PLUGIN_ROOT}/hooks/hooks.json'))" 2>/dev/null; then
+    if "$PYTHON_BIN" - "${PLUGIN_ROOT}/hooks/hooks.json" <<'PY' 2>/dev/null; then
+import json, sys
+json.load(open(sys.argv[1]))
+PY
+
         check "hooks/hooks.json is valid JSON" ok
     else
         check "hooks/hooks.json is valid JSON" "parse error"
@@ -407,7 +411,11 @@ fi
 # 6. MCP scaffold exists
 if [ -f "${PLUGIN_ROOT}/.mcp.json" ]; then
     check ".mcp.json exists" ok
-    if "$PYTHON_BIN" -c "import json; json.load(open('${PLUGIN_ROOT}/.mcp.json'))" 2>/dev/null; then
+    if "$PYTHON_BIN" - "${PLUGIN_ROOT}/.mcp.json" <<'PY' 2>/dev/null; then
+import json, sys
+json.load(open(sys.argv[1]))
+PY
+
         check ".mcp.json is valid JSON" ok
     else
         check ".mcp.json is valid JSON" "parse error"

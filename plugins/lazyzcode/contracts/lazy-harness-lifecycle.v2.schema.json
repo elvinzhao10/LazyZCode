@@ -138,6 +138,10 @@
     {
       "if": { "properties": { "product": { "const": "LazyTrae" } }, "required": ["product"] },
       "then": { "properties": { "origin": { "const": "https://github.com/elvinzhao10/LazyTrae.git" } } }
+    },
+    {
+      "if": { "properties": { "product": { "const": "LazyZCode" } }, "required": ["product"] },
+      "then": { "properties": { "origin": { "const": "https://github.com/elvinzhao10/LazyZCode.git" } } }
     }
   ],
   "type": "object",

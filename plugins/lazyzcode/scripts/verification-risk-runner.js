@@ -44,6 +44,30 @@ function readJson(file, label) {
   }
 }
 
+function pythonVersionOk(candidate) {
+  const probe = spawnSync(candidate, ['-c', 'import sys; print("%d%02d" % sys.version_info[:2])'], { encoding: 'utf8' });
+  if (probe.status !== 0 || !/^\d{3,4}\s*$/.test(probe.stdout)) return false;
+  return Number(probe.stdout.trim()) >= 310;
+}
+
+let resolvedPython;
+
+// Mirrors scripts/lazyzcode-python-resolver.sh: an explicit override is used
+// as-is, then python3 when it meets the 3.10 floor, then versioned candidates.
+// A 3.9 system python3 would make the bounded runner die on `match` syntax.
+function resolvePython() {
+  if (resolvedPython !== undefined) return resolvedPython;
+  if (process.env.LAZYZCODE_PYTHON) return (resolvedPython = process.env.LAZYZCODE_PYTHON);
+  const candidates = ['python3', 'python3.13', 'python3.12', 'python3.11', 'python3.10'];
+  for (const candidate of candidates) {
+    if (pythonVersionOk(candidate)) {
+      resolvedPython = candidate;
+      return resolvedPython;
+    }
+  }
+  return (resolvedPython = null);
+}
+
 function safeDirectory(directory) {
   if (!path.isAbsolute(directory)) fail('--target must be absolute');
   const stat = fs.lstatSync(directory);
@@ -120,7 +144,8 @@ function executeGate(options, command, spec, runtimeRoot) {
   const cwdFile = path.join(runtimeRoot, `${prefix}.cwd`);
   fs.writeFileSync(stdin, '');
   const runner = path.join(__dirname, 'lazyzcode-bounded-run.py');
-  const result = spawnSync(process.env.LAZYZCODE_PYTHON || 'python3', [runner,
+  const pythonBin = resolvePython() || fail('no Python 3.10+ interpreter found (set LAZYZCODE_PYTHON)');
+  const result = spawnSync(pythonBin, [runner,
     '--label', spec.invocationId, '--timeout', String(options.timeout), '--result-file', resultFile,
     '--cwd', options.target, '--cwd-file', cwdFile, '--stdin-file', stdin,
     '--stdout-file', stdout, '--stderr-file', stderr, '--', ...command], {
