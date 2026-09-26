@@ -19,7 +19,6 @@ const readonlyNames = new Set([
   'lazyzcode-planner',
   'lazyzcode-reviewer',
   'lazyzcode-security-auditor',
-  'lazyzcode-verifier',
 ]);
 const legacyFields = ['model', 'effort', 'maxTurns', 'disallowedTools', 'skills', 'memory', 'isolation'];
 
@@ -76,6 +75,11 @@ test('Given the shipped agents When policy validation runs Then the ZCode tool r
     assert.equal(agent.tools.includes('Edit'), false, `${agent.name} must not expose Edit`);
     assert.equal(agent.tools.includes('Agent'), false, `${agent.name} must not expose Agent`);
   }
+  const verifier = report.agents.find((agent) => agent.name === 'lazyzcode-verifier');
+  assert.ok(verifier);
+  assert.equal(verifier.tools.includes('Write'), true);
+  assert.equal(verifier.tools.includes('Edit'), false);
+  assert.equal(verifier.tools.includes('Agent'), false);
 });
 
 test('Given copied agent headers When hostile frontmatter is loaded Then every policy violation returns a machine-readable refusal', async (t) => {

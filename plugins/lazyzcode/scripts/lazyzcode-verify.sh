@@ -1,5 +1,5 @@
 #!/bin/bash
-# lazyzcode-verify.sh — Master verification runner (v1.3.1)
+# lazyzcode-verify.sh — Master verification runner (v1.3.2)
 #
 # Runs all health-check scripts in sequence and emits a compact JSON summary.
 # Exit code 0 when all_pass is true; exit code 1 otherwise.
@@ -421,10 +421,10 @@ run_language_tests() {
         ALL_PASS=false
     else
         result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-node-tests.XXXXXX")"
-        # The node suite grew with v1.3.1 (model-routing, outcome-evaluation,
+        # The node suite grew with v1.3.2 (model-routing, outcome-evaluation,
         # execution-isolation worktree fixtures); give the phase its own
         # bounded floor instead of the generic per-check budget.
-        # The node suite grew with v1.3.1; give the phase its own floor. An
+        # The node suite grew with v1.3.2; give the phase its own floor. An
         # explicit user override always wins when it exceeds the floor.
         NODE_PHASE_TIMEOUT="${LAZYZCODE_NODE_PHASE_TIMEOUT_SECONDS:-$(( VERIFY_TIMEOUT > 270 ? VERIFY_TIMEOUT : 270 ))}"
         if "$PYTHON_BIN" "$RUNNER" --label "node_tests" --timeout "$NODE_PHASE_TIMEOUT" --result-file "$result_file" -- \

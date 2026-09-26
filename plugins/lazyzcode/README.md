@@ -1,6 +1,6 @@
 # LazyZCode Plugin
 
-## Published stable v1.3.1 installation
+## Published stable v1.3.2 installation
 
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** and **Git** are recommended. The lifecycle also accepts Node.js LTS 20 for compatibility. Bootstrap `onboard` only
 from `https://github.com/elvinzhao10/LazyZCode.git`, then use

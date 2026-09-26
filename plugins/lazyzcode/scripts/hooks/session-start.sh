@@ -17,7 +17,7 @@ NOTES_FILE=$(mktemp "${TMPDIR:-/tmp}/lazyzcode-session-start.XXXXXX")
 trap 'rm -f "$NOTES_FILE"' EXIT
 note() { printf '%s\n' "$1" >>"$NOTES_FILE"; }
 
-note "(LazyZCode v1.3.1): Session starting — checking project state..."
+note "(LazyZCode v1.3.2): Session starting — checking project state..."
 
 # --- Bootstrap the .lazyzcode/ directory tree so skills/agents that read
 # plans/, context/, drafts/, or runs/ don't crash on a fresh workspace.

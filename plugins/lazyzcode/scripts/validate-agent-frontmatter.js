@@ -28,7 +28,7 @@ const ZCODE_TOOLS = new Set([
 const COLORS = new Set(['blue', 'green', 'purple', 'red', 'yellow', 'orange', 'cyan', 'pink', 'gray']);
 const READONLY_NAMES = new Set([
   'lazyzcode-context-miner', 'lazyzcode-explorer', 'lazyzcode-gate-reviewer', 'lazyzcode-planner',
-  'lazyzcode-reviewer', 'lazyzcode-security-auditor', 'lazyzcode-verifier',
+  'lazyzcode-reviewer', 'lazyzcode-security-auditor',
 ]);
 
 class AgentPolicyError extends Error {
@@ -127,6 +127,11 @@ function validateAgent(filePath) {
   if (READONLY_NAMES.has(data.name)) {
     if (data.tools.includes('Write') || data.tools.includes('Edit') || data.tools.includes('Agent')) {
       refuse(`${filename}: read-only role must not expose Write, Edit, or Agent`);
+    }
+  }
+  if (data.name === 'lazyzcode-verifier') {
+    if (!data.tools.includes('Write') || data.tools.includes('Edit') || data.tools.includes('Agent')) {
+      refuse(`${filename}: verifier must expose Write for its report but not Edit or Agent`);
     }
   }
   if (data.name === 'lazyzcode-implementer') {

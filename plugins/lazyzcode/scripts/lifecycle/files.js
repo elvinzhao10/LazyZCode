@@ -9,6 +9,8 @@ const { contained } = require('./paths');
 const NOFOLLOW = fs.constants.O_NOFOLLOW || 0;
 const GENERATED_SOURCE_DIRECTORIES = new Set([
   'plugins/lazyzcode/tooling/node_modules',
+  'plugins/lazyzcode/tooling/lsp/python/node_modules',
+  'plugins/lazyzcode/tooling/lsp/typescript/node_modules',
 ]);
 
 function sha256File(file) {
