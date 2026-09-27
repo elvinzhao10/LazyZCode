@@ -428,7 +428,7 @@ run_language_tests() {
         # explicit user override always wins when it exceeds the floor.
         NODE_PHASE_TIMEOUT="${LAZYZCODE_NODE_PHASE_TIMEOUT_SECONDS:-$(( VERIFY_TIMEOUT > 270 ? VERIFY_TIMEOUT : 270 ))}"
         if "$PYTHON_BIN" "$RUNNER" --label "node_tests" --timeout "$NODE_PHASE_TIMEOUT" --result-file "$result_file" -- \
-            node --test --test-concurrency="$NODE_TEST_CONCURRENCY" "${node_test_paths[@]}"; then
+            node --test --test-reporter=spec --test-concurrency="$NODE_TEST_CONCURRENCY" "${node_test_paths[@]}"; then
             NODE_TESTS_RESULT="pass"
         else
             status=$?

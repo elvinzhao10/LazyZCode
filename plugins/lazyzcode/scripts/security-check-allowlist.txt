@@ -5,3 +5,4 @@
 # "allowlisted" array of the scan output and never fail the scan. Entries must
 # be limited to redaction/fixture tests carrying obviously synthetic tokens.
 tests/hook-lifecycle-pipeline.test.js sk-* (API key)
+tests/hook-lifecycle-pipeline.test.js Bearer token
