@@ -127,9 +127,9 @@ files, and leaves the run eligible for retry.
 
 ## Install
 
-Use the repository [installation guide](../../docs/03-install-and-host-verification.md)
-and [host-route reference](../../docs/reference/host-routes.md) for current
-ZCode steps. The marketplace root is `<repo>/plugins`, the directory containing
+For current ZCode steps, use the installation and host-route guides in the
+source repository. Those guides are outside this installable plugin package.
+The marketplace root is `<repo>/plugins`, the directory containing
 `marketplace.json`; the nested `plugins/lazyzcode/` directory is the plugin,
 not the marketplace root. ZCode manages marketplace discovery and installation
 through **Settings → Plugin Management**, and package checks do not perform
