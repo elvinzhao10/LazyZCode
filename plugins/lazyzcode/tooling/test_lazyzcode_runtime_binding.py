@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Final
 
 import pytest
 
@@ -15,6 +16,7 @@ RUNNER = PLUGIN_ROOT / "scripts" / "lazyzcode-bounded-run.py"
 BINDER = PLUGIN_ROOT / "scripts" / "state" / "bind-session.py"
 CREATE_RUN = PLUGIN_ROOT / "scripts" / "state" / "create-run.sh"
 VALIDATE_STATE = PLUGIN_ROOT / "scripts" / "state" / "validate-state.sh"
+SHELL_BINARY: Final = Path("/bin/sh").resolve()
 
 
 def run_git(repository: Path, *args: str) -> None:
@@ -122,7 +124,7 @@ def test_runner_records_explicit_artifacts_and_typed_outcomes(tmp_path: Path) ->
         "cwd": str(cwd_file), "stdin": str(stdin_file),
         "stdout": str(stdout_file), "stderr": str(stderr_file),
     }
-    assert payload["executable"]["path"] == "/bin/sh"
+    assert payload["executable"]["path"] == str(SHELL_BINARY)
     assert payload["executable"]["digest"].startswith("sha256:")
     assert cwd_file.read_text(encoding="utf-8") == f"{cwd}\n"
     assert stdout_file.read_text(encoding="utf-8") == f"{cwd}\nprompt-shaped: $(touch should-not-run)"
@@ -343,7 +345,7 @@ def test_session_binding_rejects_malformed_run_state_without_traceback(tmp_path:
 
     # When
     completed = subprocess.run(
-        binding_command(state_file, worktree, Path("/bin/sh"), root, mcp, asset, probe),
+        binding_command(state_file, worktree, SHELL_BINARY, root, mcp, asset, probe),
         check=False, capture_output=True, text=True, timeout=5,
     )
 
@@ -379,7 +381,7 @@ def test_session_binding_rejects_unsafe_worktree(tmp_path: Path, unsafe_kind: st
 
     # When
     completed = subprocess.run(
-        binding_command(state_file, worktree, Path("/bin/sh"), root, mcp, asset, probe),
+        binding_command(state_file, worktree, SHELL_BINARY, root, mcp, asset, probe),
         check=False, capture_output=True, text=True, timeout=5,
     )
 
