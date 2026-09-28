@@ -6,7 +6,7 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The prepared package version is v1.3.2. Package checks do not prove
+The current release package version is v1.3.2. Package checks do not prove
 host activation.
 
 ## v1.3.2

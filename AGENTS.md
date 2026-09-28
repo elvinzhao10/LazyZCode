@@ -9,7 +9,7 @@ separate authorities.
 
 ## Current documentation release: v1.3.2
 
-The prepared package version is v1.3.2. The prior published stable release is v1.3.1.
+The current package version is v1.3.2. Its tag and release asset identify the published release; fresh ZCode host readiness requires direct observation.
 This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are

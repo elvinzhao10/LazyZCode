@@ -1,6 +1,6 @@
 # LazyZCode v1.3.2 — durable verification handoff
 
-**Status:** Draft release candidate. Local source and publication checks and the six GitHub Actions jobs passed for the PR candidate. Fresh ZCode activation remains pending.
+**Status:** v1.3.2 release. Source, publication, and six GitHub Actions CI jobs passed for the merged candidate. Fresh ZCode activation remains pending; package verification alone does not establish host readiness.
 
 ## Eval-driven fixes
 
@@ -11,6 +11,12 @@
 ## Measured efficiency
 
 The B3 postmortem identifies repeated whole-suite verification and polling as major token sinks. v1.3.2 has no measured token, latency, or cost reduction yet.
+
+## Native plugin and release verification
+
+ZCode auto-discovers the standard `hooks/hooks.json` file. The v1.3.2 package removes the redundant manifest hook declaration that caused `Duplicate plugin hooks file ignored` in an earlier manually installed candidate. The root GitHub marketplace catalog, bundled plugin catalog, and plugin manifest are bound by the release route contract; the package includes six MCP launchers and seven hook events. The tag-triggered workflow verifies the package, lifecycle, language suite, and release archive before publication.
+
+An earlier v1.3.2 candidate may not display an Update button because its version is unchanged. In Settings → Plugins, uninstall that candidate, refresh the marketplace, reinstall from the published repository, and start a fresh ZCode session. Verify that the duplicate warning is absent and that the expected Skills, commands, agents, hooks, and MCP connections actually load.
 
 ## Host capability matrix
 
