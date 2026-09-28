@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import signal
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
@@ -8,6 +9,7 @@ from typing import Final, TypeAlias, assert_never
 
 
 MIN_PROCESS_GROUP_ID: Final = 2
+CLEANUP_SETTLE_SECONDS: Final = 0.5
 
 
 class CleanupStatus(StrEnum):
@@ -222,6 +224,26 @@ def cleanup_owned_processes(
             return _receipt(CleanupStatus.VERIFIED_ABSENT, tracker)
         if refused_detail:
             return _receipt(CleanupStatus.SIGNAL_REFUSED, tracker, refused_detail)
+    deadline = time.monotonic() + CLEANUP_SETTLE_SECONDS
+    while time.monotonic() < deadline:
+        time.sleep(min(0.02, max(0.0, deadline - time.monotonic())))
+        inspection = inspector()
+        match inspection:
+            case InspectionUnavailable(reason=reason):
+                return _receipt(CleanupStatus.INSPECTION_UNAVAILABLE, tracker, reason)
+            case InspectionAvailable():
+                tracker = tracker.observe(inspection)
+                remaining, escaped, identity_changed, foreign_group_member = _current_owned(tracker, inspection)
+            case unreachable:
+                assert_never(unreachable)
+        if identity_changed:
+            return _receipt(CleanupStatus.IDENTITY_CHANGED, tracker, "tracked PID start identity changed")
+        if foreign_group_member:
+            return _receipt(CleanupStatus.IDENTITY_CHANGED, tracker, "untracked process occupies owned group identity")
+        if escaped:
+            return _receipt(CleanupStatus.VERIFIED_REMAINING, tracker, "tracked descendant left owned group")
+        if not remaining:
+            return _receipt(CleanupStatus.VERIFIED_ABSENT, tracker)
     return _receipt(CleanupStatus.VERIFIED_REMAINING, tracker, "owned process survived TERM and KILL")
 
 
