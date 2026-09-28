@@ -3,9 +3,9 @@ description: "Guide a LazyZCode plugin update: compare installed and repo versio
 argument-hint: "[--project <absolute-project-root>]"
 ---
 
-Work through this guided update in order. Read-only until the user performs a
-UI action themselves; never auto-edit host state, the plugin cache, or the
-enable toggle.
+Work through this guided update in order. An agent with approved computer-use
+access may perform the documented host UI steps and observe the result. Never
+edit ZCode's private config, plugin cache, or enable toggle through files.
 
 $ARGUMENTS
 
@@ -33,22 +33,24 @@ Triggers: `update LazyZCode`, `upgrade the plugin`, `refresh the install`.
    - Equal → the install is current; still offer the re-verification checklist.
    - Installed > repo → the repo checkout is older than the install; say so
      before recommending anything.
-3. **Show the changelog delta.** Point the user at `CHANGELOG.md` (the current
-   v1.3.1 entry) for what changes between versions, and at `RELEASE_NOTES.md`
+3. **Show the changelog delta.** Point the user at `CHANGELOG.md` for what
+   changes between versions, and at `RELEASE_NOTES.md`
    for the release's verification scope.
 4. **Check prerequisites.** Node.js LTS 20+ (24 recommended, 22 supported) and
    Git on `PATH` for the local launchers.
-5. **Walk the exact update flow.** ZCode has no CLI update path; everything
-   happens through the UI:
+5. **Walk the documented host update flow.** For the ZCode marketplace route,
+   use the UI (the durable launcher route is separate):
    1. In the repository: bump the `version` in
       `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
-      `plugins/marketplace.json` entry (release builds do this; a plain source
-      checkout update is just `git pull`).
-   2. In ZCode: open **Settings → Plugin Management**, open the marketplace
+      root `marketplace.json` and `plugins/marketplace.json` entries (release
+      builds do this; a plain source checkout update is just `git pull`).
+   2. In ZCode: open **Settings → Plugins**, open the marketplace
       **gear → Refresh**, then open the plugin details and click **Update**
       when offered.
    3. Source edits are not hot reload, and a catalog refresh is not a plugin
       update — only the **Update** action replaces the installed package.
+      If the version is unchanged, report that ZCode may not offer an update;
+      do not claim that a refresh installed the new revision.
 6. **Re-verify the package.** From the repository root run
    `bash plugins/lazyzcode/scripts/lazyzcode-load-check.sh` (expect
    `PACKAGE_READINESS=full`) and `bash plugins/lazyzcode/scripts/lazyzcode-plugin-doctor.sh`

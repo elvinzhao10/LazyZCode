@@ -7,7 +7,7 @@ tooling only when its receipt proves ownership. These are separate operations.
 
 | Route | Safe action | Preserve |
 | --- | --- | --- |
-| ZCode plugin (marketplace install) | Use **Settings → Plugin Management → Installed → lazyzcode → Uninstall** (or the enable/disable toggle for a reversible pause), then confirm in the host. | Other plugins, host installation paths, credentials, and host state. |
+| ZCode plugin (marketplace install) | Use **Settings → Plugins → Manage installed → lazyzcode → Uninstall** (or the enable/disable toggle for a reversible pause), then confirm in the host. | Other plugins, host installation paths, credentials, and host state. |
 | Manual fallback (imported skills + manual connectors) | Remove imported `skills/` entries through **Settings → Skills** and the manually configured connectors through the MCP settings UI. | Other imported skills, connectors, and Settings entries. |
 | Receipt-owned tooling root | Run the package uninstall command only for the exact owned root. | Modified, foreign, linked, caller-owned, project, global, and host-managed paths. |
 

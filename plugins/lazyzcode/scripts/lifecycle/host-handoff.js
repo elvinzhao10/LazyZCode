@@ -109,8 +109,10 @@ function renderHandoff(route, releaseRoot, projectRoot, marketplace = null) {
       degraded: { status: 'none' },
       next_action: {
         kind: 'gui',
-        instruction: 'Open Settings, Plugin Management, Add marketplace and paste the market root '
-          + `${marketRoot}; then install ${marketplace.install_id} and start a fresh session.`,
+        instruction: 'Open Settings → Plugins → Create → Add marketplace and enter '
+          + 'https://github.com/elvinzhao10/LazyZCode. '
+          + `For an offline checkout, select the local market root ${marketRoot}. `
+          + 'Wait for the lazyzcode card in Personal before taking the next action.',
       },
     };
   }

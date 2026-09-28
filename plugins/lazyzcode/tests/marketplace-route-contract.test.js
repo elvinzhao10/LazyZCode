@@ -19,6 +19,19 @@ const PLUGIN_ROOT = path.join(REPOSITORY_ROOT, 'plugins/lazyzcode');
 const ASSET_CLI = path.join(PLUGIN_ROOT, 'scripts', 'assets', 'asset-ownership-cli.js');
 const ROUTE_CHECK = path.join(PLUGIN_ROOT, 'scripts', 'lazyzcode-marketplace-route-check.js');
 
+test('repository URL exposes a root marketplace with the same plugin version', () => {
+  const remote = JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, 'marketplace.json'), 'utf8'));
+  const local = JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, 'plugins', 'marketplace.json'), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, '.zcode-plugin', 'plugin.json'), 'utf8'));
+
+  assert.equal(remote.name, local.name);
+  assert.equal(remote.plugins.length, 1);
+  assert.equal(remote.plugins[0].name, local.plugins[0].name);
+  assert.equal(remote.plugins[0].version, manifest.version);
+  assert.equal(remote.plugins[0].source, './plugins/lazyzcode');
+  assert.equal(local.plugins[0].source, './lazyzcode');
+});
+
 function releaseFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lazyzcode-marketplace-routes-'));
   fs.mkdirSync(path.join(root, 'plugins'), { recursive: true });

@@ -71,20 +71,29 @@ byte-identically with LazyBuddy, LazyTrae, and LazyQoder (see
 route boundary is unchanged: package
 selection never proves host activation.
 
-## Recommended: install from the plugin marketplace
+## Recommended: install with AI help
 
-Install through ZCode's own plugin management UI — no marketplace CLI, and
-no copy-paste prompts:
+Open an AI coding assistant in your project and paste this:
 
-1. Get the repo (or update your existing checkout):
-   `https://github.com/elvinzhao10/LazyZCode` (local path:
-   `<repo>/plugins` is the market root).
-2. Open **ZCode → Settings → Plugin Management → Discover** tab, click
-   **“+” / Add Plugin Marketplace**, and paste the market root directory —
-   the folder containing `marketplace.json`: `<repo>/plugins`.
-3. Open the **Personal** tab, find the `lazyzcode` plugin card, and click
-   **Install**. Installed plugins are enabled by default.
-4. You need **Node.js LTS 24 (recommended) or 22 (supported alternative)** —
+> Help me install LazyZCode from https://github.com/elvinzhao10/LazyZCode
+> for this project. Read the repository's AGENTS.md and install guide. Verify
+> the root marketplace manifest and run safe package checks first. Guide me
+> through ZCode Settings → Plugins → Create → Add marketplace using that GitHub
+> URL, then verify the installed plugin in a fresh session. Ask me before
+> adding the marketplace or installing/enabling the plugin.
+
+The assistant can run local checks and guide the host steps. Installing or
+enabling the plugin grants it code-execution trust, so approve those actions
+in ZCode after reviewing the source.
+
+## Direct marketplace setup
+
+1. Open a workspace in ZCode. Go to **Settings → Plugins → Create → Add
+   marketplace** and enter `https://github.com/elvinzhao10/LazyZCode`.
+   For an offline checkout, choose the local directory `<repo>/plugins`.
+2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
+   plugins are enabled by default.
+3. You need **Node.js LTS 24 (recommended) or 22 (supported alternative)** —
    the lifecycle also accepts Node.js LTS 20 for compatibility — and **Git**
    on `PATH` for the local
    launchers. Try it in a new task: skills appear via the Skill tool
@@ -93,10 +102,10 @@ no copy-paste prompts:
 
 ## Native onboarding
 
-Prefer a guided start? `bash scripts/install.sh` verifies Node.js LTS 20+ and
-Git, validates the in-repo marketplace layout, runs the package load-check and
-plugin doctor, and prints the exact ZCode UI steps with the absolute market
-root path (copied to the clipboard on macOS). With
+`bash scripts/install.sh` verifies Node.js LTS 20+ and
+Git, validates both marketplace manifests, runs the package load-check and
+plugin doctor, and prints the current ZCode UI steps with the GitHub URL
+(copied to the clipboard on macOS) and the local market root. With
 `--project <absolute-project-root>` it additionally runs the durable lifecycle
 onboard. Inside ZCode, the `/lazy-onboard`, `/lazy-update`, and
 `/lazy-offboard` commands walk onboarding, update, and receipt-safe removal

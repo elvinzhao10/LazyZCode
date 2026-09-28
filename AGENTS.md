@@ -69,14 +69,14 @@ route wins.
 
 If the host or operation is still ambiguous, ask one focused question and take
 no action. The supported host is **ZCode**; detect it via
-**Settings → Plugin Management** (the Installed/Discover tabs). Keep host
+**Settings → Plugins** (the Personal catalog and Manage installed view). Keep host
 authority and proof boundaries unchanged.
 
 ## `onboard` protocol
 
 When the user types `onboard`:
 
-1. Confirm the host is ZCode (open **Settings → Plugin Management**). Do not
+1. Confirm the host is ZCode (open **Settings → Plugins**). Do not
    run a host route while the environment is ambiguous.
 2. Run `status` through the durable `launcher.js`. If absent, use the verified
    source entrypoint to run `onboard`; if blocked, preserve the state and report
@@ -118,19 +118,19 @@ without current observation, **HOST READINESS: PENDING**.
 
 | Route | Safe package artifact | Host action and expected observation |
 | --- | --- | --- |
-| **ZCode marketplace (`zcode-marketplace`)** | `plugins/marketplace.json` (market root) plus `plugins/lazyzcode/.zcode-plugin/plugin.json`, declaring 19 skills, 20 commands, 13 agents, 7 hook events, and 6 MCP servers. | One-action handoff: **Settings → Plugin Management → Discover → “+” / Add Plugin Marketplace → paste `<marketplace root>` (`<repo>/plugins`) → Personal tab → Install**. Then start a fresh session and inspect one real skill/command and all six MCP connections. |
+| **ZCode marketplace (`zcode-marketplace`)** | Root `marketplace.json` for the GitHub URL, local `plugins/marketplace.json` for `<repo>/plugins`, and `plugins/lazyzcode/.zcode-plugin/plugin.json`; 19 skills, 20 commands, 13 agents, 7 hook events, and 6 MCP servers. | **Settings → Plugins → Create → Add marketplace** with `https://github.com/elvinzhao10/LazyZCode` (or local `<repo>/plugins`), then **Personal → lazyzcode → Install** as a separate approved action. Verify a fresh session. |
 | **Manual fallback (`manual-skills-mcp-fallback`)** | Skills import/copy from `plugins/lazyzcode/skills/` only, plus six individual manual local MCP connectors. | Use only after the full-plugin route is removed with receipt-scoped ownership. Observe one imported skill and all six connector statuses; commands, agents, and hooks remain excluded. |
 
 ## ZCode plugin marketplace handoff
 
-ZCode manages plugins through **Settings → Plugin Management**; there is no
-marketplace CLI. The supported handoff is one-action-at-a-time with the market
-root — the directory containing `marketplace.json` (`<repo>/plugins`), not the
-nested `plugins/lazyzcode/` plugin directory:
+ZCode manages plugins through **Settings → Plugins**. The supported handoff is
+one action at a time. The public repository URL has a root `marketplace.json`;
+for an offline checkout, use the directory containing the local manifest
+(`<repo>/plugins`), not the nested plugin directory:
 
 1. **Action 1 — add marketplace:** after approval, open
-   **Settings → Plugin Management → Discover**, click **“+” / Add Plugin
-   Marketplace**, paste `<marketplace root>`, and wait for the catalog to
+   **Settings → Plugins → Create → Add marketplace**, enter
+   `https://github.com/elvinzhao10/LazyZCode` (or local `<repo>/plugins`), and wait for the catalog to
    appear. Do not install yet.
 2. **Action 2 — install:** after a separate approval, open the **Personal**
    tab, open the `lazyzcode` plugin card, and click **Install**. Installed
@@ -144,7 +144,7 @@ nested `plugins/lazyzcode/` plugin directory:
 
 **Updates:** bump the `version` in
 `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
-`plugins/marketplace.json` entry, then marketplace **gear → Refresh** →
+`plugins/marketplace.json` and root `marketplace.json` entries, then marketplace **gear → Refresh** →
 plugin details → **Update**.
 
 Do not combine these actions, pre-approve trust, or claim host readiness from
@@ -219,7 +219,7 @@ plugin, or manually imported skills/connectors). Run durable `offboard` without
 after confirmation. Inspect the selected package receipt first, remove only
 exact receipt-owned local assets, and preserve unknown, modified, linked,
 caller-owned, project, and host-managed paths. For host state, use
-**Settings → Plugin Management → Installed → lazyzcode → Uninstall** (or the
+**Settings → Plugins → Manage installed → lazyzcode → Uninstall** (or the
 disable toggle) and remove only connectors the user added. Report the package
 result separately from the user-observed host result in a new session; never
 scan or guess host directories and never remove another host's settings. An

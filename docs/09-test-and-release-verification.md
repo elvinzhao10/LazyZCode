@@ -74,7 +74,7 @@ manual MCP connectors it declares.
 
 | Host | Build/edition | Route and fresh session | Activation and MCP | Specialist | Cancellation | Completion and actual artifacts | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| ZCode (Settings → Plugin Management) | Pending until observed | Pending | Pending | Pending | Pending | Pending | HOST READINESS: PENDING |
+| ZCode (Settings → Plugins) | Pending until observed | Pending | Pending | Pending | Pending | Pending | HOST READINESS: PENDING |
 
 If any observation or artifact is absent, retain pending for that field and
 for host readiness. Do not infer archive behavior from main CI, or claim host

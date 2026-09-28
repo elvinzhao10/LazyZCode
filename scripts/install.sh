@@ -12,7 +12,7 @@
 #   - No network calls in the package checks (the optional durable lifecycle
 #     onboard with --project fetches the official release by design).
 #   - Never edits host configuration; install/enable/update happen through
-#     ZCode's own Settings -> Plugin Management UI.
+#     ZCode's own Settings -> Plugins UI.
 #   - Package readiness only: HOST READINESS stays PENDING until a fresh
 #     ZCode session observes one real skill or command plus all six MCP
 #     connections.
@@ -22,6 +22,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 PLUGIN_DIR="$REPO_ROOT/plugins/lazyzcode"
 MARKET_ROOT="$REPO_ROOT/plugins"
+REMOTE_MARKETPLACE_URL="https://github.com/elvinzhao10/LazyZCode"
 SOURCE_URL="https://github.com/elvinzhao10/LazyZCode.git"
 
 info() { printf '%s\n' "$*"; }
@@ -81,6 +82,7 @@ esac
 
 [ -d "$PLUGIN_DIR" ] || fail "plugin directory not found: $PLUGIN_DIR"
 [ -f "$REPO_ROOT/plugins/marketplace.json" ] || fail "marketplace manifest not found: $REPO_ROOT/plugins/marketplace.json"
+[ -f "$REPO_ROOT/marketplace.json" ] || fail "repository marketplace manifest not found: $REPO_ROOT/marketplace.json"
 [ -f "$PLUGIN_DIR/.zcode-plugin/plugin.json" ] || fail "plugin manifest not found: $PLUGIN_DIR/.zcode-plugin/plugin.json"
 
 info "=== LazyZCode native onboarding ==="
@@ -121,9 +123,10 @@ info "--- Marketplace layout ---"
 
 node -e '
 const fs = require("node:fs");
-const [, marketplacePath, manifestPath] = process.argv;
+const [, marketplacePath, manifestPath, repositoryMarketplacePath] = process.argv;
 let marketplace;
 let manifest;
+let repositoryMarketplace;
 try {
     marketplace = JSON.parse(fs.readFileSync(marketplacePath, "utf8"));
 } catch (error) {
@@ -134,6 +137,12 @@ try {
     manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 } catch (error) {
     console.error(`plugin.json does not parse as JSON: ${error.message}`);
+    process.exit(1);
+}
+try {
+    repositoryMarketplace = JSON.parse(fs.readFileSync(repositoryMarketplacePath, "utf8"));
+} catch (error) {
+    console.error(`repository marketplace.json does not parse as JSON: ${error.message}`);
     process.exit(1);
 }
 const entries = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
@@ -154,8 +163,16 @@ if (entry.version !== manifest.version) {
     console.error(`version mismatch: marketplace.json ${JSON.stringify(entry.version)} != plugin.json ${JSON.stringify(manifest.version)}`);
     process.exit(1);
 }
+const remoteEntry = Array.isArray(repositoryMarketplace.plugins) && repositoryMarketplace.plugins.length === 1
+    ? repositoryMarketplace.plugins[0] : null;
+if (repositoryMarketplace.name !== marketplace.name || remoteEntry?.name !== entry.name
+    || remoteEntry?.version !== manifest.version || remoteEntry?.source !== "./plugins/lazyzcode"
+    || entry.source !== "./lazyzcode") {
+    console.error("repository marketplace and local marketplace disagree on plugin identity, version, or source path");
+    process.exit(1);
+}
 console.log(`marketplace entry: lazyzcode@${entry.version} (matches plugin manifest)`);
-' "$REPO_ROOT/plugins/marketplace.json" "$PLUGIN_DIR/.zcode-plugin/plugin.json"
+' "$REPO_ROOT/plugins/marketplace.json" "$PLUGIN_DIR/.zcode-plugin/plugin.json" "$REPO_ROOT/marketplace.json"
 
 info ""
 
@@ -182,24 +199,27 @@ fi
 info ""
 
 # --- ZCode UI handoff ---------------------------------------------------------
-info "--- Install through ZCode (Settings -> Plugin Management) ---"
+info "--- Install through ZCode (Settings -> Plugins) ---"
 info ""
-info "ZCode installs plugins only through its own UI. Use the ABSOLUTE market"
-info "root directory below (the folder containing marketplace.json):"
+info "ZCode installs plugins through its own UI. Add this public GitHub"
+info "repository as a marketplace:"
 info ""
+info "    $REMOTE_MARKETPLACE_URL"
+info ""
+info "For an offline/local checkout, use the ABSOLUTE market root directory:"
 info "    $MARKET_ROOT"
 info ""
 CLIPBOARD_NOTE=""
 if [ "$(uname -s)" = "Darwin" ] && command -v pbcopy >/dev/null 2>&1; then
     # Best-effort clipboard copy; a pbcopy failure never fails onboarding.
-    if printf '%s' "$MARKET_ROOT" | pbcopy >/dev/null 2>&1; then
+    if printf '%s' "$REMOTE_MARKETPLACE_URL" | pbcopy >/dev/null 2>&1; then
         CLIPBOARD_NOTE=" (copied to the clipboard)"
     fi
 fi
 info "Steps:"
-info "  1. Open ZCode -> Settings -> Plugin Management -> Discover tab."
-info "  2. Click \"+ / Add Plugin Marketplace\" and paste the market root"
-info "     directory above${CLIPBOARD_NOTE}."
+info "  1. Open a workspace, then ZCode -> Settings -> Plugins."
+info "  2. Click Create -> Add marketplace and enter the GitHub URL"
+info "     above${CLIPBOARD_NOTE}; use the local path only for a local checkout."
 info "  3. Open the Personal tab, find the lazyzcode plugin card, and click"
 info "     Install. Installed plugins are enabled by default."
 info "  4. Start a fresh session and verify: one real skill via the Skill tool,"

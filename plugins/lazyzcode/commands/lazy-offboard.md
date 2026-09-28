@@ -23,7 +23,7 @@ Triggers: `offboard`, `uninstall LazyZCode`, `remove the plugin`, `clean up`.
 ## Guided procedure
 
 1. **Inventory what exists (read-only).** Check which scopes apply: the ZCode
-   plugin install (ask the user what **Settings → Plugin Management** shows),
+   plugin install (inspect **Settings → Plugins** in the host),
    a receipt-owned tooling root (only a user-supplied absolute path), the
    project-local `.lazyzcode/` state directory, and a durable lifecycle
    install (`node "<install-root>/LazyZCode/launcher.js" status`). Report the
@@ -31,10 +31,12 @@ Triggers: `offboard`, `uninstall LazyZCode`, `remove the plugin`, `clean up`.
 2. **Scope 1 — ZCode plugin install (host UI, receipt-safe).** LazyZCode keeps
    no host-side state, so removal through the host is safe:
    - Reversible pause: flip the plugin's enable/disable toggle in
-     **Settings → Plugin Management**.
+     **Settings → Plugins**.
    - Full removal: **Installed** tab → `lazyzcode` → **Uninstall**, then
      confirm in the host UI.
-   The agent performs neither action; the user does, in the UI.
+   An agent with approved computer-use access may guide or perform these UI
+   actions and must observe the host result. Never edit the host's private
+   plugin registry or cache directly.
 3. **Scope 2 — receipt-owned tooling root (optional, only with an explicit
    root).** If the user passes `--tooling-root <absolute-path>` (or names one),
    run:
@@ -66,11 +68,11 @@ Triggers: `offboard`, `uninstall LazyZCode`, `remove the plugin`, `clean up`.
    The first run prints a confirmation plan; rerun with `--yes` after the user
    approves it. The bootstrap checkout may be deleted independently; it is not
    itself a host installer.
-6. **Confirm the result.** After the host UI action, ask the user to confirm
-   in that host that the plugin's skills, commands, and MCP entries are gone
-   (or disabled, for a pause). Report package removal separately from the
-   user's observed host result, and only then may the copied repository be
-   deleted.
+6. **Confirm the result.** After the host UI action, observe in a fresh session
+   that the plugin's skills, commands, and MCP entries are gone (or disabled,
+   for a pause). If that observation is unavailable, report host removal as
+   pending. The copied repository may be deleted after the durable route is
+   verified or removed independently; it is not the installed bundle.
 
 ## Do not touch
 
@@ -88,7 +90,7 @@ installation, MCP registration, or credential state.
 
 - Every applied scope was independently approved by the user, in the order
   above.
-- The host removal (if requested) was performed by the user in the UI and
+- The host removal (if requested) was performed through the host UI and
   confirmed in that host.
 - Receipt-gated uninstalls either completed with their receipt check or
   refused and preserved the root.

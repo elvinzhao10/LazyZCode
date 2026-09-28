@@ -50,7 +50,7 @@ still-detectable descendants. This is best-effort cleanup, not a security sandbo
 
 ## Intentional exclusions
 
-- ZCode uses its plugin marketplace flow (Settings → Plugin Management). The
+- ZCode uses its plugin marketplace flow (Settings → Plugins). The
   recovery-only fallback uses imported local skills with manually configured
   compatible connectors.
 - Tooling roots are receipt-owned. Host-managed paths, workspace host configuration,

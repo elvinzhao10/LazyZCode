@@ -43,14 +43,14 @@ skill/command and all six MCP connections in a fresh session. Without
 observation, **HOST READINESS: PENDING**.
 
 Route status is explicit: `zcode-marketplace` is the **default full-plugin
-route** through **Settings → Plugin Management**. The
+route** through **Settings → Plugins**. The
 `manual-skills-mcp-fallback` is recovery only.
 
 ## What each route needs
 
 | Route | Safe package artifact | Required host proof |
 | --- | --- | --- |
-| **ZCode marketplace (`zcode-marketplace`)** | `plugins/marketplace.json` (market root) plus `plugins/lazyzcode/.zcode-plugin/plugin.json`, declaring 19 skills, 20 commands, 13 agents, 7 hook events, and 6 MCP servers. Install via **Settings → Plugin Management → Discover → “+” → paste market root → Personal → Install**; validate in development with `zcode plugins validate plugins/lazyzcode`. | A fresh session showing one real skill/command and all six MCP connections. |
+| **ZCode marketplace (`zcode-marketplace`)** | Root `marketplace.json` for the GitHub URL, local `plugins/marketplace.json` for `<repo>/plugins`, and the nested plugin manifest; 19 skills, 20 commands, 13 agents, 7 hook events, and 6 MCP servers. Install via **Settings → Plugins → Create → Add marketplace** with `https://github.com/elvinzhao10/LazyZCode`, then **Personal → Install**; validate in development with `zcode plugins validate plugins/lazyzcode`. | A fresh session showing one real skill/command and all six MCP connections. |
 | **Manual fallback (`manual-skills-mcp-fallback`)** | Import/copy `plugins/lazyzcode/skills/` only, then configure each of six local MCP connectors manually. | Use only after receipt-scoped removal of the full-plugin route. Observe one imported skill and each connector; commands, agents, and hooks remain excluded. |
 
 Before requesting that host mutation, run this read-only preflight from the
@@ -134,7 +134,7 @@ evidence only.
 
 To change routes, stop the active session, remove only LazyZCode's
 receipt-scoped plugin/Skills entry and connectors that the user added through
-the host UI (**Settings → Plugin Management → Installed → lazyzcode →
+the host UI (**Settings → Plugins → Manage installed → lazyzcode →
 Uninstall**), choose one route, and verify it in a fresh session. Preserve
 other plugins, connectors, credentials, project settings, and host-managed
 paths. Package removal remains separate from observed host removal. Sibling

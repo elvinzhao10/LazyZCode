@@ -35,19 +35,19 @@ Triggers: `onboard`, `install LazyZCode`, `set up the plugin`, `verify the insta
      doctor (host=package) must pass.
    - `bash scripts/install.sh` — the native onboarding script re-runs the
      prerequisite, marketplace-layout, load-check, and doctor checks, then
-     prints the exact UI steps with the absolute market root path (on macOS it
-     also copies that path to the clipboard).
+     prints the current UI steps with the GitHub URL and local market root
+     (on macOS it copies the URL to the clipboard).
    If any check fails, fix the named package file first; do not continue.
-3. **Install through ZCode's own UI (primary route).** There is no
-   `zcode plugin marketplace add` CLI on end-user machines. Give the user the
-   exact steps with the ABSOLUTE market root (`<repo>/plugins` — the folder
-   containing `marketplace.json`, not the nested `plugins/lazyzcode/` plugin
-   directory):
-   1. Open **ZCode → Settings → Plugin Management** → **Discover** tab.
-   2. Click **“+” / Add Plugin Marketplace** and paste the market root
-      directory.
-   3. Open the **Personal** tab, find the `lazyzcode` plugin card, and click
-      **Install**. Installed plugins are enabled by default.
+3. **Install through ZCode's own UI (primary route).** Give only one host
+   action at a time after the applicable approval:
+   1. Open a workspace, then **ZCode → Settings → Plugins → Create → Add
+      marketplace**. Enter `https://github.com/elvinzhao10/LazyZCode`, whose
+      repository root contains `marketplace.json`. For an offline checkout,
+      choose local `<repo>/plugins`, not the nested plugin directory. Wait
+      for the `lazyzcode` card to appear in **Personal**.
+   2. After a separate approval, open the `lazyzcode` card and click
+      **Install**. Installed plugins are enabled by default. Wait for the
+      result before asking for a fresh session.
    Development machines with a `zcode` binary on `PATH` may additionally run
    `zcode plugins validate plugins/lazyzcode`; that is an optional,
    development-only package check, not an install and not host proof.

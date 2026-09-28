@@ -6,7 +6,8 @@ This page explains the deployment boundary in code terms. A plugin package conta
 
 LazyZCode v1.3.2 is prepared as a native ZCode plugin: `plugins/lazyzcode/`
 carries `.zcode-plugin/plugin.json`, and the marketplace root
-`plugins/marketplace.json` lists it. v1.3.1 remains the published stable
+`plugins/marketplace.json` lists it for local installs, while the repository-root
+`marketplace.json` enables adding the public GitHub URL. v1.3.1 remains the published stable
 release until the v1.3.2 release workflow completes. The supported route IDs
 are `zcode-marketplace` (the full-plugin route) and `manual-skills-mcp-fallback` (recovery only, mutually exclusive
 with a full-plugin route in the same project). v2 records native mode as
@@ -47,11 +48,11 @@ repository root:
 bash scripts/install.sh
 ```
 
-It verifies Node.js LTS 20+ and Git, checks the marketplace layout (single
+It verifies Node.js LTS 20+ and Git, checks both marketplace layouts (single
 `lazyzcode` entry, version agreement with the plugin manifest), runs
 `scripts/lazyzcode-load-check.sh` and `scripts/lazyzcode-plugin-doctor.sh`
-(host=package), prints the exact UI steps below with the absolute market root
-path (copied to the clipboard on macOS), and — with
+(host=package), prints the exact UI steps below with the GitHub repository URL
+(copied to the clipboard on macOS) and local market root, and — with
 `--project <absolute-project-root>` — additionally runs the durable lifecycle
 onboard. It performs no network calls in its package checks, never edits host
 configuration, and ends with `PACKAGE READINESS: full` plus
@@ -60,15 +61,13 @@ and `/lazy-offboard` commands guide the same flows interactively.
 
 The manual UI walkthrough remains canonical:
 
-Install LazyZCode through ZCode's own plugin management UI — no marketplace
-CLI exists, and none is needed:
+Install LazyZCode through ZCode's plugin UI:
 
-1. Open **ZCode → Settings → Plugin Management** and switch to the
-   **Discover** tab.
-2. Click **“+” / Add Plugin Marketplace** and paste the market root directory:
-   the folder that contains `marketplace.json` — `<repo>/plugins`, not the
-   nested `plugins/lazyzcode/` plugin directory. A local directory picker is
-   supported.
+1. Open a workspace in ZCode, then open **Settings → Plugins**.
+2. Click **Create → Add marketplace** and enter the public repository URL
+   `https://github.com/elvinzhao10/LazyZCode`. For a local checkout, choose
+   the directory containing the local marketplace manifest: `<repo>/plugins`,
+   not the nested `plugins/lazyzcode/` plugin directory.
 3. Switch to the **Personal** tab, open the marketplace's `lazyzcode` plugin
    card, and click **Install**. Installed plugins are enabled by default.
 4. Prerequisites for the local launchers: **Node.js LTS 24 (recommended) or
@@ -92,7 +91,7 @@ proof.
 offered. Source edits are not hot reload; a catalog refresh is not a plugin
 update.
 
-**Removal flow:** **Settings → Plugin Management → Installed → lazyzcode →
+**Removal flow:** **Settings → Plugins → Manage installed → lazyzcode →
 Uninstall** (or flip the enable/disable toggle for a reversible pause). See
 [Safe removal](08-safe-removal.md) for the receipt-scoped protocol.
 
