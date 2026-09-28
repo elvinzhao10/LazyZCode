@@ -47,6 +47,7 @@ function build() {
     version: '1.3.2',
     identity: { marketplace: 'lazyzcode', owner: 'LazyZCode', plugin: 'lazyzcode', install_id: 'lazyzcode@lazyzcode' },
     artifacts: {
+      'marketplace.json': sha256(path.join(repoRoot, 'marketplace.json')),
       'plugins/marketplace.json': sha256(path.join(repoRoot, 'plugins', 'marketplace.json')),
       'plugins/lazyzcode/.zcode-plugin/plugin.json': sha256(path.join(pluginRoot, '.zcode-plugin', 'plugin.json')),
     },

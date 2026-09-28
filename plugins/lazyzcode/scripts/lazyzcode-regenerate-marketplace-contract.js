@@ -19,7 +19,7 @@ const digest = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex'
 
 const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
 
-// Artifacts: byte digests of the two identity manifests.
+// Artifacts: byte digests of the remote/local catalogs and plugin manifest.
 for (const relative of Object.keys(contract.artifacts)) {
   contract.artifacts[relative] = digest(fs.readFileSync(path.join(releaseRoot, relative)));
 }

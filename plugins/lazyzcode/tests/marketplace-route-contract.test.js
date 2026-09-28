@@ -34,6 +34,7 @@ test('repository URL exposes a root marketplace with the same plugin version', (
 
 function releaseFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lazyzcode-marketplace-routes-'));
+  fs.copyFileSync(path.join(REPOSITORY_ROOT, 'marketplace.json'), path.join(root, 'marketplace.json'));
   fs.mkdirSync(path.join(root, 'plugins'), { recursive: true });
   fs.copyFileSync(
     path.join(REPOSITORY_ROOT, 'plugins', 'marketplace.json'),
@@ -136,6 +137,13 @@ test('refuses altered marketplace identity and host-manifest version independent
   // Then: neither can render a marketplace handoff.
   assert.throws(identity, (error) => error?.code === 'MARKETPLACE_IDENTITY_INVALID');
   assert.throws(version, (error) => error?.code === 'MARKETPLACE_VERSION_MISMATCH');
+});
+
+test('refuses a changed GitHub marketplace entry', (t) => {
+  const root = releaseFixture();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  mutateJson(path.join(root, 'marketplace.json'), (value) => { value.plugins[0].source = './elsewhere'; });
+  assert.throws(() => validateMarketplaceRoutes(root), (error) => error?.code === 'MARKETPLACE_IDENTITY_INVALID');
 });
 
 test('treats fallback as generated recovery and conflicts with the marketplace plugin route', () => {

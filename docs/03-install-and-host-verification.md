@@ -86,7 +86,7 @@ proof.
 
 **Update flow:** bump the `version` in
 `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
-`plugins/marketplace.json` entry, then in ZCode open the marketplace
+root `marketplace.json` and `plugins/marketplace.json` entries, then in ZCode open the marketplace
 **gear → Refresh**, open the plugin details, and click **Update** when
 offered. Source edits are not hot reload; a catalog refresh is not a plugin
 update.

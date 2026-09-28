@@ -7,6 +7,7 @@ const { LifecycleError } = require('./errors');
 const { safeFile } = require('./files');
 
 const CONTRACT_PATH = path.resolve(__dirname, '..', '..', 'contracts', 'marketplace-route-contract.v1.json');
+const REMOTE_MARKETPLACE_ARTIFACT = 'marketplace.json';
 const MARKETPLACE_ARTIFACT = 'plugins/marketplace.json';
 const PLUGIN_DIR = 'plugins/lazyzcode';
 const PLUGIN_MANIFEST_ARTIFACT = `${PLUGIN_DIR}/.zcode-plugin/plugin.json`;
@@ -154,6 +155,7 @@ function validateMarketplaceRoutes(releaseRoot) {
     artifacts[relative] = validateArtifact(path.join(releaseRoot, relative), expectedDigest, policy.version);
   }
   const marketplace = artifacts[MARKETPLACE_ARTIFACT];
+  const remoteMarketplace = artifacts[REMOTE_MARKETPLACE_ARTIFACT];
   const entries = Array.isArray(marketplace?.plugins) ? marketplace.plugins : [];
   const entry = entries.find((item) => item && item.name === policy.identity.plugin) ?? null;
   const source = typeof entry?.source === 'string' ? entry.source
@@ -163,6 +165,13 @@ function validateMarketplaceRoutes(releaseRoot) {
     || entries.length !== 1 || entry === null
     || entry.version !== policy.version || source !== './lazyzcode') {
     throw new LifecycleError('MARKETPLACE_IDENTITY_INVALID', 'ZCode marketplace identity does not match the contract');
+  }
+  const remoteEntries = Array.isArray(remoteMarketplace?.plugins) ? remoteMarketplace.plugins : [];
+  const remoteEntry = remoteEntries[0];
+  if (remoteMarketplace?.name !== marketplace.name || remoteEntries.length !== 1
+    || remoteEntry?.name !== policy.identity.plugin || remoteEntry.version !== policy.version
+    || remoteEntry.source !== './plugins/lazyzcode') {
+    throw new LifecycleError('MARKETPLACE_IDENTITY_INVALID', 'ZCode GitHub marketplace identity does not match the contract');
   }
   validateManifest(artifacts[PLUGIN_MANIFEST_ARTIFACT], policy.version);
   const payload = inventory(path.join(releaseRoot, PLUGIN_DIR), policy.payload);
@@ -191,6 +200,7 @@ function fallbackPolicy() {
 }
 
 module.exports = {
+  REMOTE_MARKETPLACE_ARTIFACT,
   MARKETPLACE_ARTIFACT,
   PLUGIN_DIR,
   PLUGIN_MANIFEST_ARTIFACT,

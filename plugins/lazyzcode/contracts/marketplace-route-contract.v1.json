@@ -8,6 +8,7 @@
     "install_id": "lazyzcode@lazyzcode"
   },
   "artifacts": {
+    "marketplace.json": "2c5a3ad9f0000a1fd5218b1cb6e05820533f22be4fa26b23ab816a0b3e34e0e9",
     "plugins/marketplace.json": "2101adad7d7cb39a09d1174e708e9d624c885076757c11aff4e61e01f64a0e77",
     "plugins/lazyzcode/.zcode-plugin/plugin.json": "3ab164754c0509b36ebf78387e42c64df13ac88a672f0a5c59d197d8a6772101"
   },

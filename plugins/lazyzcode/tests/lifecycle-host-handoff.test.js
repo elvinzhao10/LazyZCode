@@ -40,6 +40,10 @@ function fixture() {
     path.join(PLUGIN_ROOT, '..', 'marketplace.json'),
     path.join(sourceRoot, 'plugins', 'marketplace.json'),
   );
+  fs.copyFileSync(
+    path.join(PLUGIN_ROOT, '..', '..', 'marketplace.json'),
+    path.join(sourceRoot, 'marketplace.json'),
+  );
   fs.mkdirSync(projectRoot);
   const paths = prepareProductRoot({ installRoot, product: 'LazyZCode' });
   const commitSha = 'a'.repeat(40);
