@@ -188,7 +188,7 @@ let swapped = false;
 fs.openSync = (target, flags, mode) => {
   if (!swapped && target === process.env.BLOCKED_LOCK) {
     swapped = true;
-    fs.rmSync(process.env.PRODUCT_ROOT, { recursive: true });
+    fs.renameSync(process.env.PRODUCT_ROOT, process.env.PRODUCT_ROOT + '.previous');
     for (const directory of ['releases', 'receipts', 'staging', 'locks', 'rollback']) {
       fs.mkdirSync(path.join(process.env.PRODUCT_ROOT, directory), { recursive: true });
     }
