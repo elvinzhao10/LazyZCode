@@ -86,7 +86,8 @@ Triggers: `onboard`, `install LazyZCode`, `set up the plugin`, `verify the insta
 ## Success criteria
 
 - Package checks ran and the load-check reported `PACKAGE_READINESS=full`.
-- The user received the exact UI steps with the absolute market root.
+- The user received the exact UI steps with the public GitHub marketplace URL
+  (or the absolute local market root for an offline checkout).
 - The durable onboard (if requested) either completed with its receipt or its
   honest error was reported verbatim.
 - The fresh-session checklist was handed to the user, and the final report
