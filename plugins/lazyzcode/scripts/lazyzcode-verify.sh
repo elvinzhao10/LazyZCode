@@ -1,5 +1,5 @@
 #!/bin/bash
-# lazyzcode-verify.sh — Master verification runner (v1.3.1)
+# lazyzcode-verify.sh — Master verification runner (v1.3.2)
 #
 # Runs all health-check scripts in sequence and emits a compact JSON summary.
 # Exit code 0 when all_pass is true; exit code 1 otherwise.
@@ -219,7 +219,7 @@ run_isolated_test() {
 }
 
 run_regression_inventory() {
-    local test_name test_path test_timeout candidate inventory_failed=false
+    local test_name test_path test_timeout candidate inventory_failed=false regression_failed=false
     local tests_dir="${PLUGIN_ROOT}/tests"
     if [ "$VERIFY_SUITE" = "language" ]; then
         REGRESSION_INVENTORY_RESULT="skipped-suite"
@@ -378,12 +378,14 @@ run_regression_inventory() {
         fi
         if ! run_isolated_test "$test_path" "$test_timeout"; then
             printf 'FAIL: standalone regression failed: %s\n' "$test_name" >&2
-            AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+            regression_failed=true
             ALL_PASS=false
         fi
     done
 
-    if [ "$ALL_PASS" = true ]; then
+    if [ "$regression_failed" = true ]; then
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+    else
         AUTOMATIC_TOOLING_REGRESSIONS_RESULT="pass"
     fi
 }
@@ -421,14 +423,14 @@ run_language_tests() {
         ALL_PASS=false
     else
         result_file="$(mktemp "${TMPDIR:-/tmp}/lazyzcode-node-tests.XXXXXX")"
-        # The node suite grew with v1.3.1 (model-routing, outcome-evaluation,
+        # The node suite grew with v1.3.2 (model-routing, outcome-evaluation,
         # execution-isolation worktree fixtures); give the phase its own
         # bounded floor instead of the generic per-check budget.
-        # The node suite grew with v1.3.1; give the phase its own floor. An
+        # The node suite grew with v1.3.2; give the phase its own floor. An
         # explicit user override always wins when it exceeds the floor.
         NODE_PHASE_TIMEOUT="${LAZYZCODE_NODE_PHASE_TIMEOUT_SECONDS:-$(( VERIFY_TIMEOUT > 270 ? VERIFY_TIMEOUT : 270 ))}"
         if "$PYTHON_BIN" "$RUNNER" --label "node_tests" --timeout "$NODE_PHASE_TIMEOUT" --result-file "$result_file" -- \
-            node --test --test-concurrency="$NODE_TEST_CONCURRENCY" "${node_test_paths[@]}"; then
+            node --test --test-reporter=spec --test-concurrency="$NODE_TEST_CONCURRENCY" "${node_test_paths[@]}"; then
             NODE_TESTS_RESULT="pass"
         else
             status=$?

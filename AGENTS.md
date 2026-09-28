@@ -7,9 +7,10 @@ established. Package
 files, host settings, credentials, marketplace state, and live sessions remain
 separate authorities.
 
-## Current documentation release: v1.3.1
+## Current documentation release: v1.3.2
 
-The latest published stable release is v1.3.1. This guide names current
+The prepared package version is v1.3.2. The prior published stable release is v1.3.1.
+This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are
 `zcode-marketplace` (the default full-plugin route) and

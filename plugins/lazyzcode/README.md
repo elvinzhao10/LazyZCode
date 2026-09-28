@@ -1,6 +1,6 @@
 # LazyZCode Plugin
 
-## Published stable v1.3.1 installation
+## v1.3.2 release candidate installation
 
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** and **Git** are recommended. The lifecycle also accepts Node.js LTS 20 for compatibility. Bootstrap `onboard` only
 from `https://github.com/elvinzhao10/LazyZCode.git`, then use
@@ -22,7 +22,7 @@ require LazyZCodex or OmO at runtime.
 
 ## Durable onboarding
 
-Bootstrap the published stable v1.3.1 route from a verified official source checkout, then use the
+Bootstrap from a verified official source checkout, then use the
 durable launcher rather than treating that checkout as the installed runtime:
 
 ```bash
@@ -51,11 +51,10 @@ workspace. Only an explicitly verified lifecycle-owned sibling bootstrap lock
 or product `staging/`/`locks/` artifact is recoverable; never remove or replace
 caller workspace files.
 
-Route status is explicit: the local marketplace is the **documented ZCode CLI
-CLI route and the preferred ZCode CLI route whenever the CLI is
-available**. The ZCode app uses `.zcode-plugin/plugin.json` as its default
-marketplace full-plugin route. `manual-skills-mcp-fallback` is recovery-only.
-None is current host proof until observed.
+Route status is explicit: `zcode-marketplace` is the default full-plugin route
+through **Settings → Plugin Management**. `manual-skills-mcp-fallback` is
+recovery-only and mutually exclusive with the full-plugin route. Neither
+route is current host proof until observed.
 
 ## Quick Start
 
@@ -69,10 +68,10 @@ plus six individual manual local MCP connectors is recovery-only.
    release in the selected host, and type `onboard` after providing the GitHub
    repository link.
 2. **Verify the package** — from this `plugins/lazyzcode/` directory, run `bash scripts/lazyzcode-load-check.sh`, then `bash scripts/lazyzcode-plugin-doctor.sh`. These checks report package readiness, not host loading or MCP connection.
-3. **Verify the host** — in ZCode CLI, confirm one `/lazyzcode:lazy-<command>` or Skill and all six MCP connections in a new session. In ZCode IDE, confirm an imported Skill and each manually configured local connector; do not infer commands, agents, hooks, or MCP loading from files or load-check output without full-plugin proof.
-4. **Use the workflow** — in ZCode CLI, `/lazyzcode:lazy-<command>` commands; in ZCode IDE, use the equivalent natural-language workflow or imported skill unless a verified plugin session exposes a command.
+3. **Verify the host** — in ZCode CLI, confirm one `/lazy-<command>` or Skill and all six MCP connections in a new session. In ZCode IDE, confirm an imported Skill and each manually configured local connector; do not infer commands, agents, hooks, or MCP loading from files or load-check output without full-plugin proof.
+4. **Use the workflow** — in ZCode CLI, `/lazy-<command>` commands; in ZCode IDE, use the equivalent natural-language workflow or imported skill unless a verified plugin session exposes a command.
 
-**Verification scope:** macOS only. Repository-level public guides cover the
+**Verification scope:** package CI targets Ubuntu and macOS. Repository-level public guides cover the
 workflow and host-specific onboarding/offboarding; package readiness remains
 package evidence, not proof of live host loading or MCP connection.
 
@@ -89,12 +88,12 @@ recommendation that stays advisory until the host visibly honors it. See
 
 LazyZCode provides a workflow harness for ZCode CLI, ZCode IDE, and the ZCode app. ZCode app plugin/marketplace behavior must be verified in a live session; its local fallback uses imported skills:
 
-- **Hierarchical project memory** (`/lazyzcode:lazy-init-deep`) — generates `zcode.md` with directory scoring
-- **Prometheus planning** (`/lazyzcode:lazy-ulw-plan`) — decision-complete work plans; never writes product code
-- **Orchestrated execution** (`/lazyzcode:lazy-start-work`) — delegates to subagents; never implements directly
-- **Verified completion loop** (`/lazyzcode:lazy-ulw-loop`) — evidence-backed done claims with adversarial verification
-- **5-agent parallel review** (`/lazyzcode:lazy-review-work`) — goal/QA/code/security/context; all 5 must pass
-- **Ultrawork mode** (`/lazyzcode:lazy-ultrawork`) — binding directive with tier triage and Manual-QA discipline
+- **Hierarchical project memory** (`/lazy-init-deep`) — generates `AGENTS.md` with directory scoring
+- **Prometheus planning** (`/lazy-ulw-plan`) — decision-complete work plans; never writes product code
+- **Orchestrated execution** (`/lazy-start-work`) — delegates to subagents; never implements directly
+- **Verified completion loop** (`/lazy-ulw-loop`) — evidence-backed done claims with adversarial verification
+- **5-agent parallel review** (`/lazy-review-work`) — goal/QA/code/security/context; all 5 must pass
+- **Ultrawork mode** (`/lazy-ultrawork`) — binding directive with tier triage and Manual-QA discipline
 
 ### Execution evidence and recovery
 
@@ -118,101 +117,38 @@ files, and leaves the run eligible for retry.
 
 | Directory | Purpose | Status |
 |-----------|---------|--------|
-| `skills/` | 14 portable workflow skills | ZCode CLI plugin content; verified ZCode app local import source |
+| `skills/` | 19 workflow skills | Full-plugin content; manual fallback imports Skills only |
 | `commands/` | 20 current slash-command workflows | ZCode CLI; ZCode app only after a verified plugin/marketplace session |
 | `agents/` | 13 agent role definitions | ZCode CLI; ZCode app only after a verified plugin/marketplace session |
-| `hooks/hooks.json` | 12 host hook-event declarations | ZCode CLI; ZCode app only after a verified plugin/marketplace session |
+| `hooks/hooks.json` | 7 hook events | Full-plugin declaration; host activation requires observation |
 | `mcp/` and `.mcp.json` | 6 local MCP server declarations | ZCode CLI declarations; manual connector configuration is the verified ZCode app fallback |
 | `scripts/` | state, loop, hooks, and validation utilities | Used by package readiness and workflow checks |
 | `templates/AGENTS.md` | reusable onboarding guide | A template; no installer claims it was generated |
 
 ## Install
 
-For **ZCode CLI**, use the local release-root marketplace route below. For
-**ZCode IDE**, use that same CLI marketplace route whenever the `zcode`
-CLI is available; the supplied GUI Add local directory flow failed. If the CLI
-is unavailable, use the public Skills/manual-MCP fallback or an observed-build
-GUI route only after current discovery. For the **ZCode app**, use the supported
-Skills/manual-MCP fallback. Historical full-plugin feedback did not establish a
-public installation contract. If a required control is unavailable, record
-the build/error with **HOST READINESS: PENDING**.
+For current ZCode steps, use the installation and host-route guides in the
+source repository. Those guides are outside this installable plugin package.
+The marketplace root is `<repo>/plugins`, the directory containing
+`marketplace.json`; the nested `plugins/lazyzcode/` directory is the plugin,
+not the marketplace root. ZCode manages marketplace discovery and installation
+through **Settings → Plugin Management**, and package checks do not perform
+those host actions.
 
-### Development validation
-
-```bash
-# From plugins/lazyzcode/: validate the package and readiness.
-cd plugins/lazyzcode
-zcode plugin validate .
-bash scripts/lazyzcode-load-check.sh
-bash scripts/lazyzcode-plugin-doctor.sh
-
-# Optional and explicit; the default never executes PATH zcode.
-bash scripts/lazyzcode-plugin-doctor.sh \
-  --host-validator "/absolute/path/to/zcode"
-```
-
-### Marketplace install
-
-For ZCode CLI, run durable `status --route zcode-marketplace` and pass
-the printed active durable **release root** containing
-`.zcode-plugin/marketplace.json` (not the nested `plugins/lazyzcode/`
-directory) to the local marketplace, then install the named entry:
-
-```text
-zcode plugin marketplace add "<active-durable-release-root>"
-zcode plugin install lazyzcode@lazyzcode
-```
-
-Inside a ZCode CLI session, the interactive `/plugin` menu is equivalent:
-choose Marketplace → Add with the same release-root path, then install
-`lazyzcode@lazyzcode`. Do not use the slash forms as terminal commands.
-`--plugin-dir <absolute-release-root>` is for development/testing only,
-never persistent, and does not replace this route. Do not automate ZCode CLI
-marketplace trust or host installation.
-
-Treat the route as three separate future user actions. First, add the absolute
-release root and wait for the agent to observe marketplace discovery; do not
-install yet. Second, after a separate approval, install
-`lazyzcode@lazyzcode` and wait for the install result. Third, start a fresh
-session and observe one real Skill/command plus all six MCP connections.
-Package metadata alone is not host readiness.
-
-### ZCode IDE route
-
-When the CLI is available (`zcode`), add the absolute release root using the
-same two commands above, then restart the IDE and inspect a fresh session. The
-GUI Add local directory flow is only an observed-build alternative and failed
-in the supplied build. If the CLI is unavailable, import `skills/` and add the
-six compatible local MCP connectors manually. For the observed GUI alternative,
-add the release root, wait for discovery, install separately, fully restart,
-and verify a fresh session.
-
-### ZCode app marketplace full-plugin boundary
-
-The nested `.zcode-plugin/plugin.json` remains the default marketplace
-source even without a public manifest schema. Never inspect or mutate private
-ZCode app registries. This package preflight remains read-only:
+For read-only development validation from the repository root:
 
 ```bash
-bash plugins/lazyzcode/scripts/lazyzcode-zcode-preparation-check.sh \
-  --project-dir "<absolute-project-root>"
+bash plugins/lazyzcode/scripts/lazyzcode-load-check.sh
+bash plugins/lazyzcode/scripts/lazyzcode-plugin-doctor.sh
+zcode plugins validate plugins/lazyzcode
 ```
 
-It prints `HOST_PREPARATION=not-applied`, `HOST_MUTATION=none`, and
-`HOST_READINESS=pending`; `--apply` refuses. Durable `status --host zcode`
-emits exact current-session, removal, and recovery receipt templates. The
-Skills/manual-MCP fallback is recovery-only and excludes commands, agents, and
-hooks.
-
-For the fallback, derive a non-mutating host-settings copy from `.mcp.json`: replace
-`${CLAUDE_PLUGIN_ROOT}` with the absolute plugin root and
-`${CLAUDE_PROJECT_DIR}` with the absolute consumer project, and set both
-`cwd` and environment `CWD` / `CLAUDE_PROJECT_DIR` to that project. The exact
-six server names are `run-ledger`, `verification`, `status-dashboard`,
-`context-graph`, `code-intel`, and `docs`; each uses its matching absolute
-`mcp/<server>/server.sh` path. Agents, commands, and hooks are excluded from
-this fallback. Use the host's own uninstall/remove flow; installation locations
-are host-managed.
+The first two commands validate package inputs. The `zcode plugins validate`
+command is optional when the host CLI is available; it validates declarations
+without installing the plugin. All three are package evidence only. After the
+full plugin is installed, observe one real skill or command and all six MCP
+connections in a fresh session. The manual fallback imports Skills and six
+individual connectors only; it does not load commands, agents, or hooks.
 
 ## ZCode CLI project-local configuration
 

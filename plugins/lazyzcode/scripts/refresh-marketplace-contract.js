@@ -44,7 +44,7 @@ function build() {
   payload.inventory_sha256 = crypto.createHash('sha256').update(Buffer.from(JSON.stringify(records))).digest('hex');
   return {
     schema_version: 1,
-    version: '1.3.1',
+    version: '1.3.2',
     identity: { marketplace: 'lazyzcode', owner: 'LazyZCode', plugin: 'lazyzcode', install_id: 'lazyzcode@lazyzcode' },
     artifacts: {
       'plugins/marketplace.json': sha256(path.join(repoRoot, 'plugins', 'marketplace.json')),

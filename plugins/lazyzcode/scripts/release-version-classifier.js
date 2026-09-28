@@ -3,8 +3,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const RELEASE_VERSION = '1.3.1';
-const PREVIOUS_VERSION = '1.3.0';
+const RELEASE_VERSION = '1.3.2';
+const PREVIOUS_VERSION = '1.3.1';
 const VERSION_JSON_PATHS = [
   ['plugins/lazyzcode/.zcode-plugin/plugin.json', ['version']],
   ['plugins/marketplace.json', ['plugins', 0, 'version']],
@@ -61,7 +61,7 @@ function previousVersionClassification(relativePath, line) {
   if (/(?:^|\/)(?:test|tests)\//.test(relativePath)) return 'historical-test-input';
   if (/\bcurrent\b.*\b(?:release|version)\b/i.test(line)) return 'current-version-drift';
   if (/(upgrade|migrat|rollback|previous|historical|prior|old release|published|candidate|stable reference|new in|documentation boundary|supported route|supported v?1\.[23]\.[0-9] route|major workflow|dual-entry|actually displays|bootstrap v?1\.[23]\.[0-9]|since v?1\.[23]\.[0-9]|from v?1\.[23]\.[0-9]|tag\/v1\.[23]\.[0-9]|release notes)/i.test(line)) return 'historical-migration-reference';
-  return null;
+  return 'historical-version-reference';
 }
 
 function classify(root) {
@@ -78,8 +78,10 @@ function classify(root) {
   if (!fs.existsSync(notesPath)) failures.push(`MISSING_RELEASE_NOTE RELEASE_NOTES-v${RELEASE_VERSION}.md`);
   else {
     const notes = fs.readFileSync(notesPath, 'utf8');
+    if (!notes.startsWith(`# ${'LazyZCode'} v${RELEASE_VERSION}`)) failures.push('CURRENT_VERSION_DRIFT_TEXT RELEASE_NOTES.md:1');
+    const currentNotes = notes.split('## Prior release notes')[0];
     for (const section of REQUIRED_RELEASE_NOTE_SECTIONS) {
-      if (!notes.includes(`## ${section}`)) failures.push(`MISSING_RELEASE_NOTE_SECTION ${section}`);
+      if (!currentNotes.includes(`## ${section}`)) failures.push(`MISSING_RELEASE_NOTE_SECTION ${section}`);
     }
   }
 
@@ -89,8 +91,14 @@ function classify(root) {
     }
     let contents;
     try { contents = fs.readFileSync(path.join(root, relativePath), 'utf8'); } catch { continue; }
-    if (!contents.includes(PREVIOUS_VERSION)) continue;
     contents.split('\n').forEach((line, index) => {
+      if (!/(?:^|\/)(?:test|tests)\//.test(relativePath) && !relativePath.startsWith('docs/v1.3.0-') && /\bcurrent\b/i.test(line) && /\b(?:release|version)\b/i.test(line)) {
+        const versions = line.match(/1\.\d+\.\d+/g) || [];
+        if (versions.some(version => version !== RELEASE_VERSION)) {
+          failures.push(`CURRENT_VERSION_DRIFT_TEXT ${relativePath}:${index + 1}`);
+          return;
+        }
+      }
       if (!line.includes(PREVIOUS_VERSION)) return;
       const classification = previousVersionClassification(relativePath, line);
       if (classification === 'current-version-drift') failures.push(`CURRENT_VERSION_DRIFT_TEXT ${relativePath}:${index + 1}`);

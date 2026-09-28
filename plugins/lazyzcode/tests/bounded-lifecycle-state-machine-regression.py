@@ -95,9 +95,16 @@ cleanup_case(
 )
 cleanup_case(
     "TERM and KILL leave verified survivor",
-    (available(child), available(child), available(child), available(child)),
+    (available(child), available(child), available(child), available(child), *[available(child)] * 30),
     (runner.SignalResult.sent(), runner.SignalResult.sent()),
     "verified-remaining",
+    [4100, 4100],
+)
+cleanup_case(
+    "KILL settles after the first inspection",
+    (available(child), available(child), available(child), available(child), available()),
+    (runner.SignalResult.sent(), runner.SignalResult.sent()),
+    "verified-absent",
     [4100, 4100],
 )
 cleanup_case("PID start identity reuse", (available(reused),), (), "identity-changed", [])

@@ -6,14 +6,14 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The latest published stable release is v1.3.1. Package checks do not prove
+The prepared package version is v1.3.2. Package checks do not prove
 host activation.
 
-## v1.3.1
+## v1.3.2
 
-This release tightens intent parsing, worktree cleanup, outcome-evidence
-integrity, and context search. Subagents inherit the current model unless a
-plan explicitly enables a switch. See [release notes](RELEASE_NOTES.md) for
+This release adds durable verifier reports, focused stage checks, a compact
+run digest, and a role-aware orchestrator write boundary. The v1.3.1 intent,
+cleanup, and evidence fixes remain available. See [release notes](RELEASE_NOTES.md) for
 the changes and verification scope; current native-host testing is pending.
 
 ## From v1.3.0: work the way you talk

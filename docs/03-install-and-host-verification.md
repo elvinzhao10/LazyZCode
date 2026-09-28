@@ -2,12 +2,13 @@
 
 This page explains the deployment boundary in code terms. A plugin package contains files a host may load; it does not contain the host's marketplace registry, session state, or connector process table.
 
-## Published v1.3.1 route and host readiness
+## v1.3.2 candidate route and host readiness
 
-LazyZCode v1.3.1 ships as a native ZCode plugin: `plugins/lazyzcode/` carries
-`.zcode-plugin/plugin.json`, and the marketplace root `plugins/marketplace.json`
-lists it. v1.3.1 is the published stable release. The supported route IDs are `zcode-marketplace` (the full-plugin
-route) and `manual-skills-mcp-fallback` (recovery only, mutually exclusive
+LazyZCode v1.3.2 is prepared as a native ZCode plugin: `plugins/lazyzcode/`
+carries `.zcode-plugin/plugin.json`, and the marketplace root
+`plugins/marketplace.json` lists it. v1.3.1 remains the published stable
+release until the v1.3.2 release workflow completes. The supported route IDs
+are `zcode-marketplace` (the full-plugin route) and `manual-skills-mcp-fallback` (recovery only, mutually exclusive
 with a full-plugin route in the same project). v2 records native mode as
 `invoke-documented`, `observe-only`, `descriptor-only`, or `unavailable`;
 public label as `documented-tested`, `documented-untested`,

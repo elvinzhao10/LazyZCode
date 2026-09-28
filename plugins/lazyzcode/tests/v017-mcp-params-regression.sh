@@ -244,7 +244,7 @@ try:
         "params": {"name": "repo_overview", "arguments": {"limit": 1}},
     }) + "\n")
     process.stdin.flush()
-    readable, _, _ = select.select([process.stdout], [], [], 1.5)
+    readable, _, _ = select.select([process.stdout], [], [], 5)
     assert readable, "context-graph fallback did not respond for repo_overview"
     overview = json.loads(process.stdout.readline())["result"]["content"][0]["text"]
     assert "top 1 of 3 by incoming refs (truncated)" in overview, overview

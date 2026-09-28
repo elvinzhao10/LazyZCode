@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2] - 2026-09-25 (release candidate)
+
+- Verifier reports are written incrementally to run-scoped evidence and tied to current task identity before completion.
+- Stage checks use focused scopes and a compact digest; completion events replace active polling and guessed worker death.
+- Role-aware hooks deny orchestrator product writes and verifier writes outside the report path when agent identity is present.
+- Package version, runtime identity, and marketplace inventories are aligned; live host readiness remains pending.
+
 ## v1.3.1 — Surgical fix round (2026-09-24)
 
 - Quote-aware execution intent: quoted or historical command mentions no
