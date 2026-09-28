@@ -200,14 +200,13 @@ fs.openSync = (target, flags, mode) => {
 
   // When: lifecycle detects the changed root after creating only its private lock.
   const result = spawnSync(process.execPath, [
-    CLI, 'onboard', '--source', OFFICIAL_MAIN,
+    '--require', hook, CLI, 'onboard', '--source', OFFICIAL_MAIN,
     '--install-root', installRoot, '--project', projectRoot, '--json',
   ], {
     encoding: 'utf8',
     env: {
       ...process.env,
       BLOCKED_LOCK: path.join(installRoot, '.LazyZCode.bootstrap.lock'),
-      NODE_OPTIONS: `--require=${JSON.stringify(hook)}`,
       PRODUCT_ROOT: productRoot,
     },
   });

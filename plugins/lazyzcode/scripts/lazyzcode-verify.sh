@@ -219,7 +219,7 @@ run_isolated_test() {
 }
 
 run_regression_inventory() {
-    local test_name test_path test_timeout candidate inventory_failed=false
+    local test_name test_path test_timeout candidate inventory_failed=false regression_failed=false
     local tests_dir="${PLUGIN_ROOT}/tests"
     if [ "$VERIFY_SUITE" = "language" ]; then
         REGRESSION_INVENTORY_RESULT="skipped-suite"
@@ -378,12 +378,14 @@ run_regression_inventory() {
         fi
         if ! run_isolated_test "$test_path" "$test_timeout"; then
             printf 'FAIL: standalone regression failed: %s\n' "$test_name" >&2
-            AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+            regression_failed=true
             ALL_PASS=false
         fi
     done
 
-    if [ "$ALL_PASS" = true ]; then
+    if [ "$regression_failed" = true ]; then
+        AUTOMATIC_TOOLING_REGRESSIONS_RESULT="fail"
+    else
         AUTOMATIC_TOOLING_REGRESSIONS_RESULT="pass"
     fi
 }
