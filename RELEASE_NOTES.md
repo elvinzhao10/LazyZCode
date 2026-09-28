@@ -1,6 +1,6 @@
 # LazyZCode v1.3.2 — durable verification handoff
 
-**Status:** Draft release candidate. Local source and publication checks passed. GitHub Actions could not start because of an account billing/spending-limit block; fresh ZCode activation remains pending.
+**Status:** Draft release candidate. Local source and publication checks and the six GitHub Actions jobs passed for the PR candidate. Fresh ZCode activation remains pending.
 
 ## Eval-driven fixes
 
