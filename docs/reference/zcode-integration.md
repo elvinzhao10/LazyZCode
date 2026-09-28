@@ -9,16 +9,20 @@ it does not claim that any host has loaded the package. See
 ## Install route
 
 ZCode installs plugins from a marketplace through
-**Settings → Plugin Management**:
+**Settings → Plugins**:
 
-1. **Discover** tab → **“+” / Add Plugin Marketplace** → paste the market root
-   directory (the folder containing `marketplace.json`): `<repo>/plugins`.
+1. **Create → Add marketplace** → enter
+   `https://github.com/elvinzhao10/LazyZCode`, whose root contains
+   `marketplace.json`. For an offline checkout, choose local `<repo>/plugins`.
 2. **Personal** tab → `lazyzcode` plugin card → **Install** (enabled by
    default).
 3. Updates: bump `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
-   `plugins/marketplace.json` entry, then marketplace **gear → Refresh** →
+   `plugins/marketplace.json` and root `marketplace.json` entries, then marketplace **gear → Refresh** →
    plugin details → **Update**.
-4. Removal: **Installed** tab → `lazyzcode` → **Uninstall** (or the disable
+   A previously installed same-version candidate will not show an Update;
+   uninstall it through **Manage installed**, refresh the marketplace, and
+   install again after the fixed commit reaches `main`.
+4. Removal: **Manage installed** → `lazyzcode` → **Uninstall** (or the disable
    toggle).
 5. Development-only validation: `zcode plugins validate plugins/lazyzcode`.
 
@@ -28,8 +32,8 @@ Prerequisites for local launchers: **Node.js LTS 20+** and **Git**.
 
 `bash scripts/install.sh` (repository root) is the guided first step: it
 verifies prerequisites, validates the marketplace layout, runs the package
-load-check and doctor, and prints the install steps above with the absolute
-market root (clipboard-copied on macOS); `--project <absolute-project-root>`
+load-check and doctor, and prints the install steps above with the GitHub URL
+and local market root (URL clipboard-copied on macOS); `--project <absolute-project-root>`
 adds the durable lifecycle onboard. Inside a session, `/lazy-onboard` walks
 install plus fresh-session verification, `/lazy-update` compares the installed
 version (`~/.zcode/cli/plugins/cache/lazyzcode-market/lazyzcode/*/.zcode-plugin/plugin.json`,
@@ -48,6 +52,10 @@ real skill/command and all six MCP connections.
 | `agents/lazyzcode-*.md` | 13 | Agent dispatcher (subagents) |
 | `hooks/hooks.json` | 7 events | Auto-run when the plugin is enabled: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`, `Stop` |
 | `.mcp.json` | 6 servers | Auto-connected at session start, namespaced `plugin:lazyzcode:<server>` |
+
+ZCode discovers the standard `hooks/hooks.json` automatically. The plugin
+manifest leaves `hooks` unset so each event is registered once; declaring that
+same file in the manifest causes a duplicate-hook diagnostic.
 
 ## Variables and configuration
 

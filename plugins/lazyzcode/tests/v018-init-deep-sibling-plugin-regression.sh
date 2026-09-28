@@ -50,6 +50,7 @@ cp -R "$PLUGIN_ROOT" "$SIBLING_PLUGIN"
 find "$SIBLING_PLUGIN" -type d -name __pycache__ -prune -exec rm -rf {} +
 find "$SIBLING_PLUGIN" -type f -name '*.pyc' -delete
 cp "$PLUGIN_ROOT/../marketplace.json" "$SIBLING_PARENT/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$SIBLING_PARENT/marketplace.json"
 
 for poison in "$TMP/scripts/lazyzcode-load-check.sh" "$SIBLING_PARENT/scripts/lazyzcode-load-check.sh"; do
     cat > "$poison" <<EOF

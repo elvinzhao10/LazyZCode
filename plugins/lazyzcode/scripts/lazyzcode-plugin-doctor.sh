@@ -208,7 +208,7 @@ then
 else
     check "Plugin manifest is valid JSON" "parse error"
 fi
-for field in name version skills commands agents hooks; do
+for field in name version skills commands agents; do
     if "$PYTHON_BIN" - "$ZCODE_MANIFEST" "$field" <<'PY' 2>/dev/null
 import json
 import sys

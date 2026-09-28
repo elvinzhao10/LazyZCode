@@ -54,6 +54,7 @@ expect_contains() {
 
 mkdir -p "$TMP/plugins"
 cp "$PROJECT_ROOT/marketplace.json" "$TMP/plugins/marketplace.json"
+cp "$PROJECT_ROOT/../marketplace.json" "$TMP/marketplace.json"
 cp -R "$PLUGIN_ROOT" "$TMP/plugins/lazyzcode"
 INSTALLED_PLUGIN="$(cd "$TMP/plugins/lazyzcode" && pwd)"
 
@@ -138,6 +139,7 @@ mkdir -p "$TMP/poisoned-parent/docs"
 printf '[poisoned parent handoff](missing.md)\n' > "$TMP/poisoned-parent/docs/handoff.md"
 mkdir -p "$TMP/poisoned-parent/plugins"
 cp "$PROJECT_ROOT/marketplace.json" "$TMP/poisoned-parent/plugins/marketplace.json"
+cp "$PROJECT_ROOT/../marketplace.json" "$TMP/poisoned-parent/marketplace.json"
 cp -R "$PLUGIN_ROOT" "$PARENT_COPY"
 expect_status copied-plugin-load-ignores-parent-docs 0 env CLAUDE_PLUGIN_ROOT="$PARENT_COPY" bash "$PARENT_COPY/scripts/lazyzcode-load-check.sh"
 expect_contains copied-plugin-load-ignores-parent-docs '^PACKAGE_READINESS=full$'

@@ -40,6 +40,10 @@ function fixture() {
     path.join(PLUGIN_ROOT, '..', 'marketplace.json'),
     path.join(sourceRoot, 'plugins', 'marketplace.json'),
   );
+  fs.copyFileSync(
+    path.join(PLUGIN_ROOT, '..', '..', 'marketplace.json'),
+    path.join(sourceRoot, 'marketplace.json'),
+  );
   fs.mkdirSync(projectRoot);
   const paths = prepareProductRoot({ installRoot, product: 'LazyZCode' });
   const commitSha = 'a'.repeat(40);
@@ -108,7 +112,9 @@ test('status renders receipt-verified ZCode and ZCode handoffs without host muta
   assert.equal(zcode.host_handoff.namespace, 'lazyzcode');
   assert.equal(zcode.host_handoff.route, 'zcode-marketplace');
   assert.equal(zcode.host_handoff.next_action.kind, 'gui');
-  assert.match(zcode.host_handoff.next_action.instruction, /Plugin Management/);
+  assert.match(zcode.host_handoff.next_action.instruction, /Settings → Plugins → Create → Add marketplace/);
+  assert.match(zcode.host_handoff.next_action.instruction, /https:\/\/github\.com\/elvinzhao10\/LazyZCode/);
+  assert.doesNotMatch(zcode.host_handoff.next_action.instruction, /then install|start a fresh session/);
   assert.equal(zcode.host_handoff.host_mutation, 'none');
   assert.equal(zcode.host_readiness.status, 'pending');
   assert.deepEqual(fallback.host_handoff.manual_mcp.connectors.map((item) => item.name), SERVERS);

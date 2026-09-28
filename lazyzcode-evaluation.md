@@ -83,7 +83,7 @@ a target manifest, lockfile, global tool, or host configuration.
 
 | Surface | Package evidence | Required user observation |
 |---|---|---|
-| ZCode plugin marketplace (`zcode-marketplace`) | Marketplace entry, `.zcode-plugin/plugin.json`, local checks, and six MCP declarations. | Install via **Settings → Plugin Management → Discover → “+” → paste market root → Personal → Install**, then confirm a LazyZCode skill/command and MCP status in a new session. |
+| ZCode plugin marketplace (`zcode-marketplace`) | Root and local marketplace entries, `.zcode-plugin/plugin.json`, local checks, and six MCP declarations. | Install via **Settings → Plugins → Create → Add marketplace** with `https://github.com/elvinzhao10/LazyZCode`, then **Personal → Install**; confirm a LazyZCode skill/command and MCP status in a new session. |
 | Manual fallback (`manual-skills-mcp-fallback`) | `plugins/lazyzcode/skills/` is the verified no-package-manager import source. | Import skills through **Settings → Skills** and add each compatible MCP connector manually in Settings. |
 
 The copied repository is not a verified ZCode plugin installer. Package
@@ -158,7 +158,7 @@ and release-evidence vocabulary.
 ## Host-specific exclusions
 
 - **Host integration:** ZCode uses its plugin marketplace flow
-  (Settings → Plugin Management); the recovery-only fallback uses local skills
+  (Settings → Plugins); the recovery-only fallback uses local skills
   with manual connectors.
 - **State/path:** tooling roots are package receipt-owned; host plugin
   locations, host MCP entries, workspace host configuration, and credentials

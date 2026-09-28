@@ -48,19 +48,17 @@ user-pasted verbatim status or screenshot is observed evidence; otherwise
 
 | Host route | Safe package artifact | Required host observation |
 | --- | --- | --- |
-| **ZCode marketplace (`zcode-marketplace`)** | `plugins/marketplace.json` (market root) and the nested `plugins/lazyzcode/.zcode-plugin/plugin.json`; local package validation via `zcode plugins validate plugins/lazyzcode`. | Add the marketplace and install through the UI actions below; after installation, observe one real skill/command plus all six MCP connections in a fresh session. |
+| **ZCode marketplace (`zcode-marketplace`)** | Root `marketplace.json` for the public GitHub URL, local `plugins/marketplace.json` for `<repo>/plugins`, and the nested plugin manifest; local package validation via `zcode plugins validate plugins/lazyzcode`. | Add the marketplace and install through the UI actions below; after installation, observe one real skill/command plus all six MCP connections in a fresh session. |
 | **Manual fallback (`manual-skills-mcp-fallback`)** | Import/copy `plugins/lazyzcode/skills/` only, then configure each of six local MCP connectors manually. | Use only after receipt-scoped removal of the full-plugin route. Observe one imported skill and each connector; commands, agents, and hooks remain excluded. |
 
 ## ZCode plugin marketplace route (default)
 
-ZCode manages plugins through **Settings → Plugin Management**; there is no
-marketplace CLI. One approved action at a time:
+ZCode manages plugins through **Settings → Plugins**. One approved action at a time:
 
-1. **Add marketplace:** after approval, open **Settings → Plugin Management →
-   Discover**, click **“+” / Add Plugin Marketplace**, and paste the market
-   root directory — the folder containing `marketplace.json`
-   (`<repo>/plugins`), not the nested `plugins/lazyzcode/` plugin directory.
-   A local directory picker is supported. v1.3.1 is the published stable
+1. **Add marketplace:** after approval, open **Settings → Plugins → Create →
+   Add marketplace** and enter `https://github.com/elvinzhao10/LazyZCode`.
+   For an offline checkout, choose the local market root (`<repo>/plugins`),
+   not the nested `plugins/lazyzcode/` plugin directory. v1.3.1 is the published stable
    release; do not infer host activation from this documentation and do not
    install in the discovery action.
 2. **Install:** after a separate approval, open the **Personal** tab, open the
@@ -71,7 +69,7 @@ marketplace CLI. One approved action at a time:
 
 **Updates:** bump the `version` in
 `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
-`plugins/marketplace.json` entry; then use the marketplace
+`plugins/marketplace.json` and root `marketplace.json` entries; then use the marketplace
 **gear → Refresh**, open the plugin details, and click **Update** when
 offered. Source edits are not hot reload; a catalog refresh is not a plugin
 update.
@@ -198,7 +196,7 @@ To switch routes safely:
 
 1. Stop the current host session.
 2. Remove only LazyZCode's old plugin/Skills entry and its six connectors using
-   **Settings → Plugin Management → Installed → lazyzcode → Uninstall** (and
+   **Settings → Plugins → Manage installed → lazyzcode → Uninstall** (and
    the connector/MCP settings UI for manually added entries).
    Do not scan or edit host-private files.
 3. Choose exactly one route: full plugin installation, or Skills import plus
@@ -212,7 +210,8 @@ proof must be recorded separately.
 
 ## Troubleshooting the handoff
 
-- **Marketplace entry missing:** confirm the pasted path is the market root
+- **Marketplace entry missing:** confirm the GitHub repository URL points to
+  the root `marketplace.json`; for a local checkout, select the market root
   containing `marketplace.json` (`<repo>/plugins`), not the plugin
   subdirectory, and use the **Personal** tab after adding.
 - **Plugin card missing after adding:** use the marketplace
@@ -247,7 +246,7 @@ After the approved setup and required fresh session, send:
 `lazyzcode-load-check.sh`, `scripts/lazyzcode-plugin-doctor.sh`, and local
 metadata validation establish package readiness only. They do not prove plugin
 discovery, marketplace activation, SessionStart, hook execution, a running
-session, or MCP connection. Use **Settings → Plugin Management → Installed →
+session, or MCP connection. Use **Settings → Plugins → Manage installed →
 lazyzcode → Uninstall** and remove only connectors the user added. Never scan
 or guess host paths; report package removal separately from the user-observed
 host result.

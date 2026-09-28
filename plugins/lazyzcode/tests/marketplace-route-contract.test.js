@@ -19,8 +19,23 @@ const PLUGIN_ROOT = path.join(REPOSITORY_ROOT, 'plugins/lazyzcode');
 const ASSET_CLI = path.join(PLUGIN_ROOT, 'scripts', 'assets', 'asset-ownership-cli.js');
 const ROUTE_CHECK = path.join(PLUGIN_ROOT, 'scripts', 'lazyzcode-marketplace-route-check.js');
 
+test('repository URL exposes a root marketplace with the same plugin version', () => {
+  const remote = JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, 'marketplace.json'), 'utf8'));
+  const local = JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, 'plugins', 'marketplace.json'), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, '.zcode-plugin', 'plugin.json'), 'utf8'));
+
+  assert.equal(remote.name, local.name);
+  assert.equal(remote.plugins.length, 1);
+  assert.equal(remote.plugins[0].name, local.plugins[0].name);
+  assert.equal(remote.plugins[0].version, manifest.version);
+  assert.equal(remote.plugins[0].source, './plugins/lazyzcode');
+  assert.equal(local.plugins[0].source, './lazyzcode');
+  assert.equal(Object.hasOwn(manifest, 'hooks'), false, 'ZCode auto-discovers hooks/hooks.json');
+});
+
 function releaseFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lazyzcode-marketplace-routes-'));
+  fs.copyFileSync(path.join(REPOSITORY_ROOT, 'marketplace.json'), path.join(root, 'marketplace.json'));
   fs.mkdirSync(path.join(root, 'plugins'), { recursive: true });
   fs.copyFileSync(
     path.join(REPOSITORY_ROOT, 'plugins', 'marketplace.json'),
@@ -123,6 +138,13 @@ test('refuses altered marketplace identity and host-manifest version independent
   // Then: neither can render a marketplace handoff.
   assert.throws(identity, (error) => error?.code === 'MARKETPLACE_IDENTITY_INVALID');
   assert.throws(version, (error) => error?.code === 'MARKETPLACE_VERSION_MISMATCH');
+});
+
+test('refuses a changed GitHub marketplace entry', (t) => {
+  const root = releaseFixture();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  mutateJson(path.join(root, 'marketplace.json'), (value) => { value.plugins[0].source = './elsewhere'; });
+  assert.throws(() => validateMarketplaceRoutes(root), (error) => error?.code === 'MARKETPLACE_IDENTITY_INVALID');
 });
 
 test('treats fallback as generated recovery and conflicts with the marketplace plugin route', () => {

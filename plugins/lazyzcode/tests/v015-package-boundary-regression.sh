@@ -115,6 +115,7 @@ PYEOF
 mkdir -p "$PARENT/plugins"
 cp -R "$PLUGIN_ROOT" "$INSTALLED_PLUGIN"
 cp "$PLUGIN_ROOT/../marketplace.json" "$PARENT/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$PARENT/marketplace.json"
 printf 'PARENT LICENSE POISON\n' > "$PARENT/LICENSE"
 printf 'PARENT NOTICE POISON\n' > "$PARENT/NOTICE"
 mkdir -p "$PARENT/docs"

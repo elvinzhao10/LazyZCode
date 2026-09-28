@@ -46,6 +46,7 @@ fail() { printf 'FAIL %s\n' "$1" >&2; FAIL=$((FAIL + 1)); }
 mkdir -p "$TMP/plugins/lazyzcode"
 mkdir -p "$TMP/plugins"
 cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$TMP/marketplace.json"
 # Given the former streaming fixture copy, when its consumer exits after one
 # byte, then pipefail exposes tar's real write-side EPIPE failure.  The
 # controlled early close makes this independent of archive size and host I/O.
@@ -835,6 +836,7 @@ fi
 
 mkdir -p "$TMP/custom-market/plugins"
 cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/custom-market/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$TMP/custom-market/marketplace.json"
 cp -R "$FIXTURE" "$TMP/custom-market/plugins/lazyzcode"
 CUSTOM_SKILLS_PLUGIN="$TMP/custom-market/plugins/lazyzcode"
 if LAZYZCODE_DOCTOR_HOST=zcode PATH="$TMP/fake-bin:$PATH" CLAUDE_PLUGIN_ROOT="$CUSTOM_SKILLS_PLUGIN" bash "$CUSTOM_SKILLS_PLUGIN/scripts/lazyzcode-plugin-doctor.sh" --host-validator "$TMP/fake-bin/zcode" >"$TMP/doctor-custom-skills.out" 2>"$TMP/doctor-custom-skills.err" \

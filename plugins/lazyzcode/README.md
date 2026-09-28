@@ -52,7 +52,7 @@ or product `staging/`/`locks/` artifact is recoverable; never remove or replace
 caller workspace files.
 
 Route status is explicit: `zcode-marketplace` is the default full-plugin route
-through **Settings → Plugin Management**. `manual-skills-mcp-fallback` is
+through **Settings → Plugins**. `manual-skills-mcp-fallback` is
 recovery-only and mutually exclusive with the full-plugin route. Neither
 route is current host proof until observed.
 
@@ -132,7 +132,7 @@ source repository. Those guides are outside this installable plugin package.
 The marketplace root is `<repo>/plugins`, the directory containing
 `marketplace.json`; the nested `plugins/lazyzcode/` directory is the plugin,
 not the marketplace root. ZCode manages marketplace discovery and installation
-through **Settings → Plugin Management**, and package checks do not perform
+through **Settings → Plugins**, and package checks do not perform
 those host actions.
 
 For read-only development validation from the repository root:
