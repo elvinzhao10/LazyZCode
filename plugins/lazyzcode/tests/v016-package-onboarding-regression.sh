@@ -37,6 +37,7 @@ cp -R "$PLUGIN_ROOT/." "$INSTALLED/"
 mkdir -p "$TMP/installed/plugins/lazyzcode/.zcode-plugin" 2>/dev/null || true
 mkdir -p "$TMP/installed/plugins"
 cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/installed/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$TMP/installed/marketplace.json"
 cat > "$NPM_BIN/npm" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail

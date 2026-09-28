@@ -8,6 +8,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 mkdir -p "$TMP/plugins"
 cp "$PLUGIN_ROOT/../marketplace.json" "$TMP/plugins/marketplace.json"
+cp "$PLUGIN_ROOT/../../marketplace.json" "$TMP/marketplace.json"
 
 fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 pass() { printf 'PASS: %s\n' "$1"; }

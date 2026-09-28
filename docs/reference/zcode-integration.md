@@ -19,6 +19,9 @@ ZCode installs plugins from a marketplace through
 3. Updates: bump `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
    `plugins/marketplace.json` and root `marketplace.json` entries, then marketplace **gear → Refresh** →
    plugin details → **Update**.
+   A previously installed same-version candidate will not show an Update;
+   uninstall it through **Manage installed**, refresh the marketplace, and
+   install again after the fixed commit reaches `main`.
 4. Removal: **Manage installed** → `lazyzcode` → **Uninstall** (or the disable
    toggle).
 5. Development-only validation: `zcode plugins validate plugins/lazyzcode`.
@@ -49,6 +52,10 @@ real skill/command and all six MCP connections.
 | `agents/lazyzcode-*.md` | 13 | Agent dispatcher (subagents) |
 | `hooks/hooks.json` | 7 events | Auto-run when the plugin is enabled: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`, `Stop` |
 | `.mcp.json` | 6 servers | Auto-connected at session start, namespaced `plugin:lazyzcode:<server>` |
+
+ZCode discovers the standard `hooks/hooks.json` automatically. The plugin
+manifest leaves `hooks` unset so each event is registered once; declaring that
+same file in the manifest causes a duplicate-hook diagnostic.
 
 ## Variables and configuration
 

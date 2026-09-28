@@ -50,7 +50,10 @@ Triggers: `update LazyZCode`, `upgrade the plugin`, `refresh the install`.
    3. Source edits are not hot reload, and a catalog refresh is not a plugin
       update — only the **Update** action replaces the installed package.
       If the version is unchanged, report that ZCode may not offer an update;
-      do not claim that a refresh installed the new revision.
+      do not claim that a refresh installed the new revision. For an earlier
+      same-version v1.3.2 candidate, use **Manage installed → Uninstall**,
+      refresh the marketplace after the fixed commit reaches `main`, then
+      install the plugin again and verify in a fresh session.
 6. **Re-verify the package.** From the repository root run
    `bash plugins/lazyzcode/scripts/lazyzcode-load-check.sh` (expect
    `PACKAGE_READINESS=full`) and `bash plugins/lazyzcode/scripts/lazyzcode-plugin-doctor.sh`

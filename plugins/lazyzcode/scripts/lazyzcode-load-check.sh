@@ -211,7 +211,6 @@ if manifest is not None:
         "skills": "skills",
         "commands": "commands",
         "agents": "agents",
-        "hooks": "hooks/hooks.json",
     }
     for component, target in components.items():
         if component not in manifest:
@@ -227,6 +226,10 @@ if manifest is not None:
             result("PASS", f"plugin manifest {component}", f"declared ({target})")
         else:
             result("FAIL", f"plugin manifest {component}", f"expected {target!r}, got {raw!r}")
+    if "hooks" in manifest:
+        result("FAIL", "plugin manifest hooks", "standard hooks/hooks.json is auto-discovered; remove the duplicate declaration")
+    else:
+        result("PASS", "plugin manifest hooks", "auto-discovered from hooks/hooks.json")
     if "mcpServers" in manifest:
         raw = manifest["mcpServers"]
         values = raw if isinstance(raw, list) else [raw]

@@ -19,7 +19,6 @@ const PAYLOAD_COMPONENTS = Object.freeze({
   skills: 'skills',
   commands: 'commands',
   agents: 'agents',
-  hooks: 'hooks/hooks.json',
 });
 const OPTIONAL_COMPONENTS = Object.freeze({
   mcpServers: '.mcp.json',
@@ -81,6 +80,9 @@ function validateManifest(value, expectedVersion) {
     if (paths === null || !paths.includes(target)) {
       throw new LifecycleError(errorCode, `plugin manifest ${component} must declare ${target}`);
     }
+  }
+  if ('hooks' in manifest) {
+    throw new LifecycleError(errorCode, 'standard hooks/hooks.json is auto-discovered and must not be declared again');
   }
   for (const [component, target] of Object.entries(OPTIONAL_COMPONENTS)) {
     if (component in manifest) {

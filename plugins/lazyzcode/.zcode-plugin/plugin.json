@@ -13,7 +13,6 @@
   "skills": "skills",
   "commands": "commands",
   "agents": "agents",
-  "hooks": "./hooks/hooks.json",
   "userConfig": {
     "mcp_mode": {
       "type": "string",

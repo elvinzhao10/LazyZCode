@@ -30,6 +30,7 @@ test('repository URL exposes a root marketplace with the same plugin version', (
   assert.equal(remote.plugins[0].version, manifest.version);
   assert.equal(remote.plugins[0].source, './plugins/lazyzcode');
   assert.equal(local.plugins[0].source, './lazyzcode');
+  assert.equal(Object.hasOwn(manifest, 'hooks'), false, 'ZCode auto-discovers hooks/hooks.json');
 });
 
 function releaseFixture() {

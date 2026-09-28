@@ -93,6 +93,11 @@ in ZCode after reviewing the source.
    For an offline checkout, choose the local directory `<repo>/plugins`.
 2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
    plugins are enabled by default.
+   If you installed an earlier v1.3.2 candidate, a marketplace refresh alone
+   will not replace its cached plugin. After this fix reaches `main`, uninstall
+   that copy in **Manage installed**, refresh the marketplace, and install it
+   again; then start a fresh session to check that the duplicate-hook warning
+   is gone.
 3. You need **Node.js LTS 24 (recommended) or 22 (supported alternative)** —
    the lifecycle also accepts Node.js LTS 20 for compatibility — and **Git**
    on `PATH` for the local
