@@ -223,19 +223,28 @@ else
     fail_case 'prompt-injection-shaped mode is rejected'
 fi
 
-# ZCode MCP startup contract: a gated-off launcher defers quietly (exit 0),
-# writes the diagnostic to stderr, and never emits protocol output on stdout.
-if printf '%s\n' '{"jsonrpc":"2.0","id":"deferred","method":"initialize","params":{}}' \
+if printf '%s\n' '{"jsonrpc":"2.0","id":"deferred","method":"initialize","params":{}}' '{"jsonrpc":"2.0","id":"tools","method":"tools/list","params":{}}' \
     | CWD="$PROJECT" CLAUDE_PROJECT_DIR="$PROJECT" CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" LAZYZCODE_MCP_MODE=direct \
         bash "$PLUGIN_ROOT/mcp/docs/server.sh" > "$TMP/runtime-deferred.out" 2> "$TMP/runtime-deferred.err"; then
-    if [ ! -s "$TMP/runtime-deferred.out" ] \
+    if grep -Fq '"id":"deferred"' "$TMP/runtime-deferred.out" \
+        && grep -Fq '"id":"tools","result":{"tools":[]}' "$TMP/runtime-deferred.out" \
         && grep -Fq 'MCP_PROFILE_DEFERRED server=docs mode=direct' "$TMP/runtime-deferred.err"; then
-        pass_case 'real docs launcher enforces direct-profile deferral'
+        pass_case 'real docs launcher serves an empty deferred MCP endpoint'
     else
-        fail_case 'real docs launcher enforces direct-profile deferral'
+        fail_case 'real docs launcher serves an empty deferred MCP endpoint'
     fi
 else
-    fail_case 'real docs launcher enforces direct-profile deferral'
+    fail_case 'real docs launcher serves an empty deferred MCP endpoint'
+fi
+
+if printf '%s\n' '{"jsonrpc":"2.0","id":"invalid","method":"initialize","params":{}}' \
+    | LAZYZCODE_MCP_MODE=invalid CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" bash "$PLUGIN_ROOT/mcp/docs/server.sh" > "$TMP/runtime-invalid.out" 2> "$TMP/runtime-invalid.err"; then
+    fail_case 'invalid runtime profile remains an actionable error'
+elif [ "$?" -eq 2 ] && [ ! -s "$TMP/runtime-invalid.out" ] \
+    && grep -Fq 'MCP_PROFILE_INVALID mode=invalid' "$TMP/runtime-invalid.err"; then
+    pass_case 'invalid runtime profile remains an actionable error'
+else
+    fail_case 'invalid runtime profile remains an actionable error'
 fi
 
 for server in run-ledger verification status-dashboard; do

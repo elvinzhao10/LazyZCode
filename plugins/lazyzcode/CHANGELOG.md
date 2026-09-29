@@ -1,5 +1,9 @@
 # LazyZCode Plugin Changelog
 
+## [1.3.3] - 2026-09-28
+
+Local candidate: versioned-cache readiness, restricted-role hook and wrapper hardening, and deferred MCP protocol endpoint. See RELEASE_NOTES.md for verification limits.
+
 ## [1.3.2] - 2026-09-25 (release candidate)
 
 - Verifier reports are written incrementally to run-scoped evidence and tied to current task identity before completion.

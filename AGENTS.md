@@ -7,9 +7,9 @@ established. Package
 files, host settings, credentials, marketplace state, and live sessions remain
 separate authorities.
 
-## Current documentation release: v1.3.2
+## Current documentation release: v1.3.3
 
-The current package version is v1.3.2. Its tag and release asset identify the published release; fresh ZCode host readiness requires direct observation.
+The current local package candidate is v1.3.3. The v1.3.3 tag and release asset are pending publication; fresh ZCode host readiness requires direct observation.
 This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are

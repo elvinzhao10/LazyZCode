@@ -62,6 +62,16 @@ expect_status full-package-readiness 0 env CLAUDE_PLUGIN_ROOT="$INSTALLED_PLUGIN
 expect_contains full-package-readiness '^PACKAGE_READINESS=full$'
 expect_contains full-package-readiness '^PASS commands: 20/20$'
 expect_contains full-package-readiness '^PASS MCP servers: 6/6$'
+mkdir -p "$TMP/cache/lazyzcode"
+cp -R "$PLUGIN_ROOT" "$TMP/cache/lazyzcode/1.3.3"
+VERSIONED_PLUGIN="$TMP/cache/lazyzcode/1.3.3"
+expect_status versioned-package-readiness 0 env ZCODE_PLUGIN_ROOT="$VERSIONED_PLUGIN" bash "$VERSIONED_PLUGIN/scripts/lazyzcode-load-check.sh"
+expect_contains versioned-package-readiness '^PACKAGE_READINESS=full$'
+expect_status native-root-precedence 0 env ZCODE_PLUGIN_ROOT="$VERSIONED_PLUGIN" CLAUDE_PLUGIN_ROOT="$TMP/missing-plugin" bash "$VERSIONED_PLUGIN/scripts/lazyzcode-load-check.sh"
+expect_status relative-native-root-rejected 1 env ZCODE_PLUGIN_ROOT=relative/path bash "$VERSIONED_PLUGIN/scripts/lazyzcode-load-check.sh"
+expect_status traversing-native-root-rejected 1 env ZCODE_PLUGIN_ROOT="$TMP/cache/../cache/lazyzcode/1.3.3" bash "$VERSIONED_PLUGIN/scripts/lazyzcode-load-check.sh"
+ln -s "$TMP/cache" "$TMP/cache-link"
+expect_status symlinked-native-root-rejected 1 env ZCODE_PLUGIN_ROOT="$TMP/cache-link/lazyzcode/1.3.3" bash "$VERSIONED_PLUGIN/scripts/lazyzcode-load-check.sh"
 expect_status full-package-doctor 0 env CLAUDE_PLUGIN_ROOT="$INSTALLED_PLUGIN" bash "$INSTALLED_PLUGIN/scripts/lazyzcode-plugin-doctor.sh"
 expect_contains full-package-doctor '^  \[PASS\] Command definitions \(20\)$'
 

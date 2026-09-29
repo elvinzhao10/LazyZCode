@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "1.3.2",
+  "version": "1.3.3",
   "identity": {
     "marketplace": "lazyzcode",
     "owner": "LazyZCode",
@@ -8,9 +8,9 @@
     "install_id": "lazyzcode@lazyzcode"
   },
   "artifacts": {
-    "marketplace.json": "2c5a3ad9f0000a1fd5218b1cb6e05820533f22be4fa26b23ab816a0b3e34e0e9",
-    "plugins/marketplace.json": "2101adad7d7cb39a09d1174e708e9d624c885076757c11aff4e61e01f64a0e77",
-    "plugins/lazyzcode/.zcode-plugin/plugin.json": "e5aade076eb60c01bbbd0d3d4ea0118030ea35bc96cc3cd20438bfe00852a1ae"
+    "marketplace.json": "741be0dddd9045a3e73c9dea55205d2687d44dc953a13aa39f9ead1e0a259b85",
+    "plugins/marketplace.json": "2b0d9a3a0b0445807716700e56cf40bcd6784c258a3f80536568be876d25fee8",
+    "plugins/lazyzcode/.zcode-plugin/plugin.json": "ccc00fdd8d40655432f0cbe7ab2d37a4327c11f989c41e2c5364c1a5acbc0edc"
   },
   "payload": {
     "method": "Deterministic inventory: walk each payload root (skills, commands, agents, hooks, mcp) recursively from the plugin root; reject symlinks and non-regular files; skip entries named .gitkeep, __pycache__ directories, and .pyc bytecode; include only regular files with st_nlink == 1. Record {path, sha256} per file with the POSIX path relative to plugins/lazyzcode and sha256 over the file bytes. Append policy.files entries the same way. Sort records byte-wise (Buffer.compare) by path. file_count is the record count; inventory_sha256 is the SHA-256 of the UTF-8 JSON serialization of the sorted record array (JSON.stringify with default separators, no whitespace, insertion order = sorted path order).",
@@ -24,8 +24,8 @@
     "files": [
       ".mcp.json"
     ],
-    "file_count": 72,
-    "inventory_sha256": "684df7e7606385aeb58fa94cd528c2ce583d019f2e4f405bb082bfeadacdf10e"
+    "file_count": 73,
+    "inventory_sha256": "36fc803c18c05759e11e489892fe21c829be39c92f07312542220ddc5ad8202a"
   },
   "default_routes": {
     "zcode": "zcode-marketplace",

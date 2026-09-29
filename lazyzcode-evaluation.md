@@ -7,7 +7,7 @@ requires a separate current-session observation.
 
 ## Current documentation status: v1.3.1 published
 
-The latest published stable release is v1.3.1; native-host readiness remains
+The latest published stable release is v1.3.2; native-host readiness remains
 pending. The published stable v1.3.1 documentation targets the ZCode host. The
 ZCode plugin marketplace route (`zcode-marketplace`)
 is the default full-plugin route. The `manual-skills-mcp-fallback` route is

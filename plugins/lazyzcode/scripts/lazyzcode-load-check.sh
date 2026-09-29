@@ -18,12 +18,12 @@ reject_symlinked_path_components() {
 
         case "$component" in
             ''|.) continue ;;
-            ..) prefix="$prefix/.."; continue ;;
+            ..) echo "$ROOT_VARIABLE must not contain parent traversal" >&2; exit 1 ;;
         esac
 
         candidate="$prefix$component"
         if [ -L "$candidate" ] && ! is_macos_var_alias "$candidate"; then
-            echo "CLAUDE_PLUGIN_ROOT path must not be symlinked" >&2
+            echo "$ROOT_VARIABLE path must not be symlinked" >&2
             exit 1
         fi
         prefix="$candidate/"
@@ -34,19 +34,27 @@ is_macos_var_alias() {
     [ "$1" = /var ] && [ "$(CDPATH= cd -P -- /var && pwd)" = /private/var ]
 }
 
-if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-    case "$CLAUDE_PLUGIN_ROOT" in
+if [ -n "${ZCODE_PLUGIN_ROOT:-}" ]; then
+    PLUGIN_ROOT="$ZCODE_PLUGIN_ROOT"
+    ROOT_VARIABLE=ZCODE_PLUGIN_ROOT
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    PLUGIN_ROOT="$CLAUDE_PLUGIN_ROOT"
+    ROOT_VARIABLE=CLAUDE_PLUGIN_ROOT
+else
+    PLUGIN_ROOT="$(cd -P "$(dirname "$0")/.." && pwd -P)"
+    ROOT_VARIABLE="plugin root"
+fi
+
+if [ -n "${ZCODE_PLUGIN_ROOT:-}" ] || [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    case "$PLUGIN_ROOT" in
         /*)
-            PLUGIN_ROOT="$CLAUDE_PLUGIN_ROOT"
             reject_symlinked_path_components "$PLUGIN_ROOT"
             ;;
         *)
-            echo "CLAUDE_PLUGIN_ROOT must be an absolute path" >&2
+            echo "$ROOT_VARIABLE must be an absolute path" >&2
             exit 1
             ;;
     esac
-else
-    PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
 python3 - "$PLUGIN_ROOT" <<'PY'
@@ -71,7 +79,7 @@ EXPECTED_HOOK_EVENTS = (
     "Stop",
 )
 EXPECTED_MCP_SERVERS = 6
-EXPECTED_VERSION = "1.3.2"
+EXPECTED_VERSION = "1.3.3"
 ZCODE_HOOK_EVENTS = set(EXPECTED_HOOK_EVENTS)
 
 def result(state, label, detail):
@@ -105,6 +113,38 @@ def count_files(label, directory, expected, predicate):
 
 print("=== LazyZCode Package Readiness Check ===")
 print(f"Plugin root: {root}")
+source_root = os.path.dirname(os.path.dirname(root))
+source_revision = "unavailable in installed package"
+if os.path.isdir(os.path.join(source_root, ".git")):
+    try:
+        revision = subprocess.run(
+            ["git", "-C", source_root, "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=2, check=False,
+        )
+        dirty = subprocess.run(
+            ["git", "-C", source_root, "status", "--porcelain", "--untracked-files=normal"],
+            capture_output=True, text=True, timeout=2, check=False,
+        )
+        if revision.returncode == 0:
+            source_revision = revision.stdout.strip() + ("+dirty" if dirty.returncode == 0 and dirty.stdout else "")
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+print(f"Source revision: {source_revision}")
+mode = os.environ.get("LAZYZCODE_MCP_MODE") or "orchestrated"
+profiles = {
+    "direct": {"run-ledger", "verification", "status-dashboard"},
+    "assisted": {"run-ledger", "verification", "status-dashboard", "context-graph", "code-intel"},
+    "planned": {"run-ledger", "verification", "status-dashboard", "context-graph", "docs"},
+    "orchestrated": {"run-ledger", "verification", "status-dashboard", "context-graph", "code-intel", "docs"},
+    "long-horizon": {"run-ledger", "verification", "status-dashboard", "context-graph", "code-intel", "docs"},
+}
+if mode not in profiles:
+    result("FAIL", "MCP profile", "invalid mode")
+else:
+    deferred = sorted(profiles["orchestrated"] - profiles[mode])
+    print(f"MCP profile: {mode}; deferred: {', '.join(deferred) or 'none'} (profile exclusion; protocol endpoint remains available)")
+restricted = os.environ.get("LAZYZCODE_RESTRICTED_RUN") == "1"
+print(f"Role enforcement: {'restricted run requested; trusted hook identity required' if restricted else 'conditional; no restricted run selected'}")
 
 if not os.path.isdir(root):
     result("FAIL", "plugin root", "directory missing")
@@ -198,10 +238,8 @@ manifest = load_json(manifest_path, "plugin manifest")
 if manifest is not None:
     if manifest.get("name") != "lazyzcode":
         result("FAIL", "plugin manifest name", "expected 'lazyzcode'")
-    elif os.path.basename(root) != "lazyzcode":
-        result("FAIL", "plugin manifest name", "plugin directory must equal the manifest name 'lazyzcode'")
     else:
-        result("PASS", "plugin manifest name", "lazyzcode (matches plugin directory)")
+        result("PASS", "plugin manifest name", "lazyzcode")
     version = manifest.get("version")
     if version != EXPECTED_VERSION:
         result("FAIL", "plugin manifest version", f"expected {EXPECTED_VERSION}, got {version!r}")

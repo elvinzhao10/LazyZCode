@@ -146,6 +146,10 @@ test('rejects destructive remote mutating and approval-requiring plan argv witho
     ['sudo', 'touch', 'owned.txt'],
     ['zcode', 'plugin', 'install', 'lazybuddy@lazybuddy'],
     ['node', '-e', 'require("node:fs").writeFileSync("owned.txt","changed")'],
+    ['env', 'sh', '-c', 'touch owned.txt'],
+    ['nice', 'sh', '-c', 'touch owned.txt'],
+    ['nohup', 'sh', '-c', 'touch owned.txt'],
+    ['xargs', 'sh', '-c', 'touch owned.txt'],
   ];
   // When: each argv-only packet crosses the direct validator boundary.
   const results = unsafeArgv.map((argv) => {
@@ -316,6 +320,8 @@ test('public execution CLI rejects missing or mismatched plan authority and obsc
   nodeEval.command_validation.commands[0].argv = ['node', '-e', 'require("node:fs").writeFileSync("pwned","x")'];
   const gitReset = record('artifact.txt');
   gitReset.command_validation.commands[0].argv = ['git', '-C', root, 'reset', '--hard'];
+  const wrapped = record('artifact.txt');
+  wrapped.command_validation.commands[0].argv = ['env', 'sh', '-c', 'touch pwned'];
   const safe = record('artifact.txt');
   // When: each hostile record crosses the shipped CLI rather than the internal function alone.
   const safePlan = writeExecutionAuthority(root, safe, 'safe-plan.json');
@@ -332,6 +338,10 @@ test('public execution CLI rejects missing or mismatched plan authority and obsc
   fs.writeFileSync(path.join(root, 'gitReset.json'), `${JSON.stringify(gitReset)}\n`);
   const obscured = spawnSync(process.execPath, [validatorPath, 'execution', '--project-root', root,
     '--plan-commands-file', gitPlan, path.join(root, 'gitReset.json')], { encoding: 'utf8' });
+  const wrappedPlan = writeExecutionAuthority(root, wrapped, 'wrapped-plan.json');
+  fs.writeFileSync(path.join(root, 'wrapped.json'), `${JSON.stringify(wrapped)}\n`);
+  const wrappedResult = spawnSync(process.execPath, [validatorPath, 'execution', '--project-root', root,
+    '--plan-commands-file', wrappedPlan, path.join(root, 'wrapped.json')], { encoding: 'utf8' });
   // Then: all fail closed and no certified command is executed.
   assert.notEqual(unbound.status, 0);
   assert.match(unbound.stderr, /plan commands/i);
@@ -341,6 +351,8 @@ test('public execution CLI rejects missing or mismatched plan authority and obsc
   assert.match(boundEval.stderr, /unsafe shell token/);
   assert.notEqual(obscured.status, 0);
   assert.match(obscured.stderr, /mutation, remote access, or approval required/);
+  assert.notEqual(wrappedResult.status, 0);
+  assert.match(wrappedResult.stderr, /mutation, remote access, or approval required/);
   assert.equal(fs.existsSync(path.join(root, 'pwned')), false);
   assert.equal(fs.readFileSync(path.join(root, 'artifact.txt'), 'utf8'), 'preserve\n');
 });

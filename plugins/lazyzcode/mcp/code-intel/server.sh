@@ -20,10 +20,14 @@ case "$PLUGIN_ROOT" in
 esac
 [ -d "$PLUGIN_ROOT" ] || die "plugin root not found: $PLUGIN_ROOT"
 source "$PLUGIN_ROOT/mcp/profile-gate.sh"
-if ! lazyzcode_require_mcp_profile "code-intel"; then
-  # Deferred or gated-off profile: defer quietly so ZCode MCP startup never breaks.
-  # The gate already wrote MCP_PROFILE_DEFERRED / MCP_PROFILE_INVALID diagnostics to stderr.
-  exit 0
+if lazyzcode_require_mcp_profile "code-intel"; then
+  :
+else
+  profile_status=$?
+  if [ "$profile_status" -eq 3 ]; then
+    exec python3 -B "$PLUGIN_ROOT/mcp/deferred-server.py" "code-intel"
+  fi
+  exit "$profile_status"
 fi
 SERVER_DIR="$PLUGIN_ROOT/mcp/code-intel"
 [ -f "$SERVER_DIR/server.py" ] || die "MCP server implementation not found: $SERVER_DIR/server.py"

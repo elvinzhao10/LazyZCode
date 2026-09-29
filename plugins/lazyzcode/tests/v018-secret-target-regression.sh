@@ -30,6 +30,15 @@ expect_allowed() {
     [ -z "$HOOK_OUTPUT" ] || fail "$label was denied: $HOOK_OUTPUT"
 }
 
+expect_input_denied() {
+    local label="$1"
+    local payload="$2"
+    run_hook "$payload"
+    [ "$HOOK_STATUS" -eq 2 ] || fail "$label exited $HOOK_STATUS"
+    [ -z "$HOOK_OUTPUT" ] || fail "$label wrote stdout"
+    printf '%s' "$HOOK_STDERR" | grep -Fq 'malformed or missing a mutating tool payload' || fail "$label lacked malformed-input reason"
+}
+
 expect_denied() {
     local label="$1"
     local payload="$2"
@@ -64,7 +73,7 @@ expect_denied filename-traversal '{"tool_name":"Write","tool_input":{"filename":
 expect_denied file-name-camel-credentials '{"tool_name":"Edit","tool_input":{"fileName":"credentials.json"}}'
 expect_allowed nested-field '{"tool_name":"Edit","tool_input":{"metadata":{"path":".env"}}}'
 expect_allowed non-string-path '{"tool_name":"Write","tool_input":{"path":{"value":".env"}}}'
-expect_allowed malformed-tool-input '{"tool_name":"Edit","tool_input":[".env"]}'
+expect_input_denied malformed-tool-input '{"tool_name":"Edit","tool_input":[".env"]}'
 
 expect_denied bash-literal-secret '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}'
 
