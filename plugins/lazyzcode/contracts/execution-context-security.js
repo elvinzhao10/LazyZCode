@@ -8,6 +8,7 @@ const TERMINAL_RUNS = new Set(['complete', 'failed', 'cancelled']);
 const UNSAFE_ARGV = new Set([';', '&&', '||', '|', '>', '>>', '<', '<<']);
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'cmd', 'cmd.exe', 'powershell', 'pwsh']);
 const NON_DISPATCHABLE = new Set(['rm', 'sudo', 'curl', 'wget', 'ssh', 'scp', 'open', 'osascript']);
+const UNBOUNDED_WRAPPERS = new Set(['env', 'nice', 'nohup', 'xargs', 'command', 'setsid', 'timeout']);
 const MUTATING_GIT = new Set(['push', 'reset', 'clean', 'checkout', 'restore', 'commit', 'rebase', 'merge', 'tag']);
 const MUTATING_PACKAGES = new Set(['install', 'ci', 'publish', 'uninstall', 'update']);
 const GIT_OPTIONS_WITH_VALUES = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--super-prefix', '--config-env']);
@@ -165,7 +166,7 @@ function commandErrors(commands) {
       && MUTATING_PACKAGES.has(subcommand);
     const hostMutation = executable === 'zcode' && command.argv.includes('plugin')
       && command.argv.some((part) => ['add', 'install', 'uninstall', 'remove'].includes(part.toLowerCase()));
-    if (NON_DISPATCHABLE.has(executable)
+    if (UNBOUNDED_WRAPPERS.has(executable) || NON_DISPATCHABLE.has(executable)
       || (executable === 'git' && MUTATING_GIT.has(gitSubcommand(command.argv)))
       || packageMutation || hostMutation) {
       errors.push('command_validation.commands.argv: mutation, remote access, or approval required');

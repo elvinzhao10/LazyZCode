@@ -6,16 +6,39 @@
 # stderr; otherwise exit 0 and print NOTHING on stdout (any stdout is parsed
 # as strict JSON, so diagnostics must go to stderr).
 set -uo pipefail
+export LC_ALL=C
 
 # --- Read event JSON from stdin defensively (cap input at 1 MiB) ---
-INPUT=$(head -c 1048576 || true)
-TOOL_NAME=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_name',''))" 2>/dev/null || echo "")
-TOOL_INPUT=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d.get('tool_input',{})))" 2>/dev/null || echo "{}")
-
 deny() {
     echo "LazyZCode policy denial: $1" >&2
     exit 2
 }
+if INPUT=$(python3 -c '
+import json, sys
+raw = sys.stdin.buffer.read(1048577)
+if len(raw) > 1048576:
+    sys.exit(3)
+try:
+    event = json.loads(raw)
+except (ValueError, UnicodeDecodeError, RecursionError):
+    sys.exit(2)
+if not isinstance(event, dict) or not isinstance(event.get("tool_name"), str):
+    sys.exit(2)
+if event["tool_name"] in ("Write", "Edit", "Bash", "Shell", "RunCommand", "ExecuteCommand") and not isinstance(event.get("tool_input"), dict):
+    sys.exit(2)
+sys.stdout.write(json.dumps(event, separators=(",", ":")))
+' 2>/dev/null); then
+    :
+else
+    status=$?
+    if [ "$status" -eq 3 ]; then
+        deny "Hook input exceeds the 1 MiB policy limit."
+    fi
+    deny "Hook input is malformed or missing a mutating tool payload."
+fi
+TOOL_NAME=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_name',''))" 2>/dev/null || echo "")
+case "$TOOL_NAME" in Shell|RunCommand|ExecuteCommand) TOOL_NAME=Bash ;; esac
+TOOL_INPUT=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d.get('tool_input',{})))" 2>/dev/null || echo "{}")
 
 # Enforce role-scoped writes when the host supplies agent identity.
 ROLE_WRITE_DENIED=$(printf '%s' "$INPUT" | python3 -c '
@@ -24,10 +47,21 @@ try:
     event = json.load(sys.stdin)
 except (ValueError, TypeError):
     raise SystemExit(0)
-roles = {event.get(key) for key in ("agent_type", "agent_type_name", "agent_name", "subagent_type") if isinstance(event.get(key), str)}
-role = "lazyzcode-verifier" if "lazyzcode-verifier" in roles else "lazyzcode-orchestrator" if "lazyzcode-orchestrator" in roles else ""
+roles = {event[key].strip().lower() for key in ("agent_type", "agent_type_name", "agent_name", "subagent_type") if isinstance(event.get(key), str)}
+restricted = roles & {"lazyzcode-verifier", "lazyzcode-orchestrator"}
+if len(restricted) > 1:
+    print("deny")
+    raise SystemExit(0)
+role = next(iter(restricted), "")
 tool = event.get("tool_name")
-if tool not in ("Write", "Edit") or role not in ("lazyzcode-orchestrator", "lazyzcode-verifier"):
+if tool not in ("Write", "Edit", "Bash", "Shell", "RunCommand", "ExecuteCommand"):
+    raise SystemExit(0)
+if not role:
+    if os.environ.get("LAZYZCODE_RESTRICTED_RUN") == "1":
+        print("deny")
+    raise SystemExit(0)
+if tool in ("Bash", "Shell", "RunCommand", "ExecuteCommand"):
+    print("deny")
     raise SystemExit(0)
 tool_input = event.get("tool_input")
 if not isinstance(tool_input, dict):

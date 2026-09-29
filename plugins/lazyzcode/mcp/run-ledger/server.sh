@@ -19,10 +19,14 @@ case "$PLUGIN_ROOT" in
 esac
 [ -d "$PLUGIN_ROOT" ] || die "plugin root not found: $PLUGIN_ROOT"
 source "$PLUGIN_ROOT/mcp/profile-gate.sh"
-if ! lazyzcode_require_mcp_profile "run-ledger"; then
-  # Deferred or gated-off profile: defer quietly so ZCode MCP startup never breaks.
-  # The gate already wrote MCP_PROFILE_DEFERRED / MCP_PROFILE_INVALID diagnostics to stderr.
-  exit 0
+if lazyzcode_require_mcp_profile "run-ledger"; then
+  :
+else
+  profile_status=$?
+  if [ "$profile_status" -eq 3 ]; then
+    exec python3 -B "$PLUGIN_ROOT/mcp/deferred-server.py" "run-ledger"
+  fi
+  exit "$profile_status"
 fi
 RAW_CWD="${CWD:-${CLAUDE_PROJECT_DIR:-}}"
 [ -n "$RAW_CWD" ] || die "project CWD is required: set CWD or CLAUDE_PROJECT_DIR"
@@ -195,7 +199,7 @@ while IFS= read -r INPUT || [ -n "$INPUT" ]; do
 
 case "$METHOD" in
   initialize)
-    reply '{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"run-ledger","version":"1.3.2"}}'
+    reply '{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"run-ledger","version":"1.3.3"}}'
     ;;
   tools/list)
     reply "$TOOL_LIST"

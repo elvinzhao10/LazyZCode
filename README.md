@@ -6,15 +6,14 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The current release package version is v1.3.2. Package checks do not prove
-host activation.
+The current local release candidate is v1.3.3. Publication and fresh host
+activation remain pending.
 
-## v1.3.2
+## v1.3.3
 
-This release adds durable verifier reports, focused stage checks, a compact
-run digest, and a role-aware orchestrator write boundary. The v1.3.1 intent,
-cleanup, and evidence fixes remain available. See [release notes](RELEASE_NOTES.md) for
-the changes and verification scope; current native-host testing is pending.
+This candidate repairs versioned-cache readiness, restricted-role hooks,
+wrapped shell policy, and deferred MCP behavior. See [release notes](RELEASE_NOTES.md)
+for the changes and verification scope; fresh native-host testing is pending.
 
 ## From v1.3.0: work the way you talk
 
@@ -93,7 +92,7 @@ in ZCode after reviewing the source.
    For an offline checkout, choose the local directory `<repo>/plugins`.
 2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
    plugins are enabled by default.
-   If you installed an earlier v1.3.2 candidate, a marketplace refresh alone
+   If you installed an earlier v1.3.3 candidate, a marketplace refresh alone
    will not replace its cached plugin. After this fix reaches `main`, uninstall
    that copy in **Manage installed**, refresh the marketplace, and install it
    again; then start a fresh session to check that the duplicate-hook warning
