@@ -37,22 +37,30 @@ if [ ! -f "$STATE_FILE" ]; then
     exit 1
 fi
 
+state_begin_snapshot "$RUN_DIR" || exit 1
+
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PLAN_TMP=$(mktemp "$RUN_DIR/.plan.md.XXXXXX")
+PLAN_BASE_SHA_TMP=$(mktemp "$RUN_DIR/.plan-sha.XXXXXX")
 STATE_TMP=$(mktemp "$RUN_DIR/.state.json.XXXXXX")
 EVENTS_TMP=$(mktemp "$RUN_DIR/.events.jsonl.XXXXXX")
-cleanup_transaction_temps() { rm -f "$PLAN_TMP" "$STATE_TMP" "$EVENTS_TMP"; }
+cleanup_transaction_temps() { rm -f "$PLAN_TMP" "$PLAN_BASE_SHA_TMP" "$STATE_TMP" "$EVENTS_TMP"; }
 trap cleanup_transaction_temps EXIT
 
-python3 - "$PLAN_FILE" "$PLAN_TMP" "$STATE_FILE" "$STATE_TMP" "$EVENTS_FILE" "$EVENTS_TMP" "$NOW" "$RUN_ID" "$TASK_LABEL" <<'PYEOF'
+python3 - "$PLAN_FILE" "$PLAN_TMP" "$STATE_FILE" "$STATE_TMP" "$EVENTS_FILE" "$EVENTS_TMP" "$NOW" "$RUN_ID" "$TASK_LABEL" "$PLAN_BASE_SHA_TMP" <<'PYEOF'
 import json
+import hashlib
 import re
 import sys
 
-plan_file, plan_tmp, state_file, state_tmp, events_file, events_tmp, now, run_id, task_label = sys.argv[1:]
+plan_file, plan_tmp, state_file, state_tmp, events_file, events_tmp, now, run_id, task_label, plan_base_sha_tmp = sys.argv[1:]
 label = task_label.lower()
-with open(plan_file) as handle:
-    lines = handle.readlines()
+with open(plan_file, 'rb') as handle:
+    plan_bytes_before = handle.read()
+base_sha = hashlib.sha256(plan_bytes_before).hexdigest()
+lines = plan_bytes_before.decode('utf-8').splitlines(keepends=True)
+with open(plan_base_sha_tmp, 'w') as handle:
+    handle.write(base_sha + '\n')
 checkbox_re = re.compile(r'^- \[([ xX])\]\s+(.+)$')
 identity_re = re.compile(r'^([A-Za-z]*\d+)\s*[:.]\s*.+$')
 task_boxes = {}
@@ -127,7 +135,7 @@ with open(events_tmp, 'w') as output:
 PYEOF
 
 state_commit_transaction "$RUN_DIR" update_plan_checkbox \
-    "$(state_transaction_write_arg plan.md "$PLAN_FILE" "$PLAN_TMP")" \
+    "plan.md|$(cat "$PLAN_BASE_SHA_TMP")|$PLAN_TMP" \
     "$(state_transaction_write_arg state.json "$STATE_FILE" "$STATE_TMP")" \
     "$(state_transaction_write_arg events.jsonl "$EVENTS_FILE" "$EVENTS_TMP")"
 

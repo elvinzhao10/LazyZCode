@@ -23,7 +23,7 @@ function mutate(relativePath, transform) {
   return root;
 }
 
-test('v1.3.3 release versions are classified with one current root release note', () => {
+test('v1.3.4 release versions are classified with one current root release note', () => {
   assert.deepEqual(classify(ROOT).failures, []);
 });
 
@@ -41,7 +41,7 @@ test('classifier rejects a current 1.3.0 claim even when migration wording is pr
 for (const [name, relativePath, transform, failure] of [
   ['current 1.3.1 drift', 'README.md', text => `${text}\nCurrent release version is 1.3.1.\n`, 'CURRENT_VERSION_DRIFT_TEXT'],
   ['missing release-note section', 'RELEASE_NOTES.md', text => text.replace('## Rollback', '## Recovery'), 'MISSING_RELEASE_NOTE_SECTION'],
-  ['package/runtime mismatch', 'plugins/lazyzcode/.zcode-plugin/plugin.json', text => text.replace('"version": "1.3.3"', '"version": "1.3.0"'), 'CURRENT_VERSION_DRIFT'],
+  ['package/runtime mismatch', 'plugins/lazyzcode/.zcode-plugin/plugin.json', text => text.replace('"version": "1.3.4"', '"version": "1.3.0"'), 'CURRENT_VERSION_DRIFT'],
   ['superseded versioned release note', 'RELEASE_NOTES.md', text => text, 'VERSIONED_RELEASE_NOTE_PRESENT'],
 ]) {
   test(`classifier rejects ${name} in a copy`, () => {

@@ -96,7 +96,7 @@ reference separately from verifier output. This lets a reviewer distinguish
 “the package check passed,” “the requested surface was observed,” and “the
 claim remains limited by an unverified host fact.”
 
-## v1.3.1 measurement boundary
+## v1.3.4 measurement boundary
 
 Cost-outcome records may identify `measurement_scope` as `fixture-validation`
 or `execution`. An absent scope is unspecified. The family baseline runners

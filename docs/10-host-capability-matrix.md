@@ -4,9 +4,9 @@ LazyZCode deliberately aligns policy and package safety across hosts while keepi
 
 ## Onboarding baseline
 
-## Published v1.3.1 evidence boundary
+## Current v1.3.4 evidence boundary
 
-The published v1.3.1 documentation targets the **ZCode** host; no current
+The current v1.3.4 documentation targets the **ZCode** host; no current
 host activation is claimed. The ZCode plugin marketplace
 route (`zcode-marketplace`) is the default full-plugin route. The
 `manual-skills-mcp-fallback` route is recovery-only and mutually exclusive

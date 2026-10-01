@@ -1,10 +1,9 @@
 # Host routes
 
-## v1.3.3 candidate route and host readiness
+## v1.3.4 route and host readiness
 
-This guide describes the v1.3.3 release candidate for the ZCode host.
-v1.3.2 remains the published stable release until v1.3.3 publication;
-native-host readiness remains pending. The ZCode plugin marketplace route
+This guide describes the current v1.3.4 package for the ZCode host.
+Native-host readiness remains pending. The ZCode plugin marketplace route
 (`zcode-marketplace`) is the default full-plugin route. The
 `manual-skills-mcp-fallback` route is recovery-only and mutually exclusive
 with a full-plugin route for one project.
@@ -58,8 +57,8 @@ ZCode manages plugins through **Settings → Plugins**. One approved action at a
 1. **Add marketplace:** after approval, open **Settings → Plugins → Create →
    Add marketplace** and enter `https://github.com/elvinzhao10/LazyZCode`.
    For an offline checkout, choose the local market root (`<repo>/plugins`),
-   not the nested `plugins/lazyzcode/` plugin directory. v1.3.1 is the published stable
-   release; do not infer host activation from this documentation and do not
+   not the nested `plugins/lazyzcode/` plugin directory. Inspect the version
+   the marketplace actually displays; do not infer host activation from this documentation and do not
    install in the discovery action.
 2. **Install:** after a separate approval, open the **Personal** tab, open the
    `lazyzcode` plugin card, and click **Install**. Installed plugins are

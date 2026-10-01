@@ -71,6 +71,10 @@ if [ ! -f "$STATE_FILE" ]; then
     exit 1
 fi
 
+if [ "$FIX" = "--fix" ]; then
+    state_begin_snapshot "$STATE_RUN_DIR" || exit 1
+fi
+
 PLAN_REF=$(python3 - "$STATE_FILE" <<'PY'
 import json
 import sys
