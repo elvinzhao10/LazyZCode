@@ -145,7 +145,7 @@ connections.
 
 Manual setup is available when you prefer complete control. You need
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** — the lifecycle
-also accepts Node.js LTS 20 for compatibility — and **Git**. Start from the
+also accepts Node.js LTS 20 for compatibility — and **Git**, plus **Python 3.10+** available as `python3`. Start from the
 verified origin
 `https://github.com/elvinzhao10/LazyZCode` and follow the
 [installation guide](docs/03-install-and-host-verification.md).
