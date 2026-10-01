@@ -30,7 +30,7 @@ function git(cwd, args) {
   return result.stdout.trim();
 }
 
-function writeFixtureFiles(root, selfTest = "process.stdout.write('self-test-ok\\n');\n", version = '1.3.3') {
+function writeFixtureFiles(root, selfTest = "process.stdout.write('self-test-ok\\n');\n", version = '1.3.4') {
   const packageRoot = path.join(root, 'plugins/lazyzcode');
   const contracts = path.join(packageRoot, 'contracts');
   fs.mkdirSync(path.join(packageRoot, '.zcode-plugin'), { recursive: true });
@@ -49,7 +49,7 @@ function writeFixtureFiles(root, selfTest = "process.stdout.write('self-test-ok\
   }
 }
 
-function fixture(version = '1.3.3') {
+function fixture(version = '1.3.4') {
   const sandbox = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'lazyzcode bootstrap '));
   const remote = path.join(sandbox, 'official fixture.git');
   const source = path.join(sandbox, 'source');
@@ -125,8 +125,8 @@ function treeSnapshot(root) {
 
 test('parses only canonical official HTTPS source forms for the selected product', () => {
   const accepted = [
-    ['https://github.com/elvinzhao10/LazyZCode', 'v1.3.3'],
-    ['https://github.com/elvinzhao10/LazyZCode.git', 'v1.3.3'],
+    ['https://github.com/elvinzhao10/LazyZCode', 'v1.3.4'],
+    ['https://github.com/elvinzhao10/LazyZCode.git', 'v1.3.4'],
     ['https://github.com/elvinzhao10/LazyZCode/tree/release/v1.3.0', 'release/v1.3.0'],
   ];
   const rejected = [
@@ -172,7 +172,7 @@ test('resolves, verifies, self-tests, and promotes a local fixture under an offi
     commit_sha: expectedSha,
     status: 'ready',
     test_status: 'passed',
-    version: '1.3.3',
+    version: '1.3.4',
   });
   assert.equal(launched.status, 0, launched.stderr);
   assert.equal(launched.stdout.trim(), 'fixture-launch-ok');
@@ -183,7 +183,7 @@ test('resolves, verifies, self-tests, and promotes a local fixture under an offi
 test('repo, tag, branch, and full-SHA sources resolve through Git to the same immutable commit', () => {
   const sources = [
     'https://github.com/elvinzhao10/LazyZCode',
-    'https://github.com/elvinzhao10/LazyZCode/tree/v1.3.3',
+    'https://github.com/elvinzhao10/LazyZCode/tree/v1.3.4',
     'https://github.com/elvinzhao10/LazyZCode/tree/main',
   ];
   for (const sourceUrl of sources) {
@@ -218,30 +218,32 @@ test('same version at a different SHA requires an exact revision confirmation', 
   assert.notEqual(promoted.release_id, first.release_id);
 });
 
-test('v1.3.2 upgrades to v1.3.3 while retaining the prior release', () => {
-  const f = fixture('1.3.2');
+for (const priorVersion of ['1.3.2', '1.3.3']) {
+test(`v${priorVersion} upgrades to v1.3.4 while retaining the prior release`, () => {
+  const f = fixture(priorVersion);
   const priorSha = git(f.source, ['rev-parse', 'HEAD']);
   const priorSource = path.join(f.sandbox, 'prior package');
   fs.cpSync(f.source, priorSource, { recursive: true, filter: source => path.basename(source) !== '.git' });
-  const staged = stageRelease(f.paths, { sourceRoot: priorSource, version: '1.3.2', commitSha: priorSha });
+  const staged = stageRelease(f.paths, { sourceRoot: priorSource, version: priorVersion, commitSha: priorSha });
   const prior = promoteRelease(f.paths, {
     ...staged, commitSha: priorSha, entrypoint: 'plugins/lazyzcode/scripts/lazyzcode-lifecycle.js',
     manifestRelativePath: 'plugins/lazyzcode/.zcode-plugin/plugin.json',
-    origin: OFFICIAL, runtimePath: process.execPath, version: '1.3.2',
+    origin: OFFICIAL, runtimePath: process.execPath, version: priorVersion,
   });
   const manifestPath = path.join(f.source, 'plugins/lazyzcode/.zcode-plugin/plugin.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  manifest.version = '1.3.3';
+  manifest.version = '1.3.4';
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest)}\n`);
   git(f.source, ['add', 'plugins/lazyzcode']);
-  git(f.source, ['commit', '-m', 'fixture v1.3.3']);
+  git(f.source, ['commit', '-m', 'fixture v1.3.4']);
   git(f.source, ['push', f.remote, 'main']);
   const upgraded = bootstrap(f);
-  assert.equal(upgraded.version, '1.3.3');
+  assert.equal(upgraded.version, '1.3.4');
   assert.notEqual(upgraded.release_id, prior.releaseId);
   assert.equal(fs.existsSync(path.join(f.paths.releases, prior.releaseId)), true);
   assert.equal(JSON.parse(fs.readFileSync(f.paths.active, 'utf8')).active_release, upgraded.release_id);
 });
+}
 
 test('manifest, checksum, self-test, prerequisite, and clone failures preserve active state', async (t) => {
   for (const scenario of [

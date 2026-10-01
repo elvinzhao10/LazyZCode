@@ -1,5 +1,5 @@
 #!/bin/bash
-# lazyzcode-verify.sh — Master verification runner (v1.3.3)
+# lazyzcode-verify.sh — Master verification runner (v1.3.4)
 #
 # Runs all health-check scripts in sequence and emits a compact JSON summary.
 # Exit code 0 when all_pass is true; exit code 1 otherwise.

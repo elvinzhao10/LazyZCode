@@ -6,10 +6,10 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The current local release candidate is v1.3.3. Publication and fresh host
+The current local release candidate is v1.3.4. Publication and fresh host
 activation remain pending.
 
-## v1.3.3
+## v1.3.4
 
 This candidate repairs versioned-cache readiness, restricted-role hooks,
 wrapped shell policy, and deferred MCP behavior. See [release notes](RELEASE_NOTES.md)
@@ -92,7 +92,7 @@ in ZCode after reviewing the source.
    For an offline checkout, choose the local directory `<repo>/plugins`.
 2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
    plugins are enabled by default.
-   If you installed an earlier v1.3.3 candidate, a marketplace refresh alone
+   If you installed an earlier v1.3.4 candidate, a marketplace refresh alone
    will not replace its cached plugin. After this fix reaches `main`, uninstall
    that copy in **Manage installed**, refresh the marketplace, and install it
    again; then start a fresh session to check that the duplicate-hook warning

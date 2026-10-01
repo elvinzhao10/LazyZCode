@@ -101,14 +101,16 @@ function atomicWrite(target, value) {
   fs.renameSync(temporary, target);
 }
 
-function updateState(active, eventId, occurredAt) {
+function updateState(active, eventId, occurredAt, outcome = 'requested') {
   if (active === null) return;
-  const lifecycle = active.state.hook_lifecycle !== null && typeof active.state.hook_lifecycle === 'object' && !Array.isArray(active.state.hook_lifecycle)
-    ? { ...active.state.hook_lifecycle }
-    : {};
-  lifecycle.last_event = { event: EVENT, event_id: eventId, occurred_at: occurredAt };
-  lifecycle.last_permission = { event_id: eventId, outcome: 'requested', completion_authority: false };
-  atomicWrite(active.statePath, { ...active.state, hook_lifecycle: lifecycle });
+  const { spawnSync } = require('node:child_process');
+  const result = spawnSync('python3', [
+    path.join(PLUGIN_ROOT, 'scripts', 'state', 'run_controller.py'),
+    'hook', path.dirname(active.statePath), eventId, occurredAt, EVENT, outcome,
+  ], { encoding: 'utf8', timeout: 7000, maxBuffer: 65536 });
+  if (result.status !== 0) {
+    process.stderr.write(JSON.stringify({ status: 'deferred', reason: 'state_transaction_unavailable' }) + '\n');
+  }
 }
 
 function processEvent() {
