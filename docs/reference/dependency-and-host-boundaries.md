@@ -27,7 +27,7 @@ flowchart TB
 
 ## What LazyZCode implements directly
 
-The package implements workflow policy files, run-state scripts, receipt verification, package readiness/doctor/aggregate checks, path boundaries, structured hook policy, and six local MCP programs. The local MCP programs use Bash/Python and package-local launchers; they do not need a LazyZCodex/OmO runtime. `context-graph` is a local grep-based heuristic, so its results are approximate rather than semantic CodeGraph analysis.
+The package implements workflow policy files, run-state scripts, receipt verification, package readiness/doctor/aggregate checks, path boundaries, structured hook policy, and six local MCP programs. The local MCP programs use Bash/Python and package-local launchers; they do not need a LazyCodex/OmO runtime. `context-graph` is a local grep-based heuristic, so its results are approximate rather than semantic CodeGraph analysis.
 
 The tooling manifest pins fallback packages for ripgrep, ast-grep, and CodeGraph. These are not permanent project dependencies: existing compatible tools are checked first, and fallback installation is limited to a caller-selected receipt-owned root. LSP fallback packages are selected by supported workspace language. Target dependency manifests, lockfiles, and host configuration are outside this lifecycle.
 

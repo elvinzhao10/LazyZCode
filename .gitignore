@@ -77,3 +77,17 @@ yarn-error.log*
 # *.log pattern above must never swallow them.
 !plugins/lazyzcode/contracts/fixtures/**/*.log
 !plugins/lazyzcode/tests/fixtures/**/*.log
+
+# Shared LazySeries development hygiene (keep example configuration public).
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.template
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.tsbuildinfo

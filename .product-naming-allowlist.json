@@ -43,13 +43,6 @@
       "reason": "Attribution of the earlier host implementation is kept verbatim."
     },
     {
-      "path": "README.md",
-      "text": "LazyQoder",
-      "count": 1,
-      "classification": "source-identity",
-      "reason": "Shared-semantics byte-identity statement lists the family members."
-    },
-    {
       "path": "docs/10-host-capability-matrix.md",
       "text": "LazyQoder",
       "count": 1,
@@ -69,34 +62,6 @@
       "count": 1,
       "classification": "immutable-historical-fixture",
       "reason": "Family-shared canonical scenario fixture; byte-identical across the family."
-    },
-    {
-      "path": "NOTICE",
-      "text": "LazyQoder",
-      "count": 3,
-      "classification": "attribution",
-      "reason": "Legal attribution keeps the upstream product lineage verbatim."
-    },
-    {
-      "path": "NOTICE",
-      "text": "Qoder",
-      "count": 2,
-      "classification": "attribution",
-      "reason": "Legal attribution keeps the upstream host lineage verbatim."
-    },
-    {
-      "path": "plugins/lazyzcode/NOTICE",
-      "text": "LazyQoder",
-      "count": 3,
-      "classification": "attribution",
-      "reason": "Legal attribution keeps the upstream product lineage verbatim."
-    },
-    {
-      "path": "plugins/lazyzcode/NOTICE",
-      "text": "Qoder",
-      "count": 2,
-      "classification": "attribution",
-      "reason": "Legal attribution keeps the upstream host lineage verbatim."
     },
     {
       "path": ".build-conventions.md",
@@ -125,6 +90,20 @@
       "count": 1,
       "classification": "old-note",
       "reason": "Build conventions record the retired internal codename so regressions are detectable."
+    },
+    {
+      "path": "README.md",
+      "text": "LazyQoder",
+      "count": 3,
+      "classification": "source-identity",
+      "reason": "Exact sibling links and host names in the LazySeries family table; not current product identity."
+    },
+    {
+      "path": "README.md",
+      "text": "Qoder",
+      "count": 1,
+      "classification": "source-identity",
+      "reason": "Exact sibling links and host names in the LazySeries family table; not current product identity."
     }
   ],
   "stableIdentityFiles": [

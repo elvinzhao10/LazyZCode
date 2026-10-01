@@ -2,24 +2,45 @@
 
 ![LazyZCode](lazyzcode-banner.png)
 
+[![Package 1.3.4](https://img.shields.io/badge/package-1.3.4-7ce8d1)](RELEASE_NOTES.md)
+[![MIT License](https://img.shields.io/badge/license-MIT-silver)](LICENSE)
+[![LazySeries family](https://img.shields.io/badge/LazySeries-6_siblings-7ce8d1)](#lazyseries-family)
+
+**Describe the work. Keep the plan. Prove the result.**
+
 LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It prepares local package assets
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The current package version is v1.3.4. Fresh native-host acceptance remains
-pending; package checks do not prove a host loaded it.
+[Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
+[1.3.4 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
 
-## v1.3.4
+> **Current package version: v1.3.4. HOST READINESS: PENDING.** Local checks and release
+> archives prove package behavior; a fresh host session must prove loading,
+> command/skill execution and MCP connections.
 
-v1.3.4 makes run updates transactional, preserves checkpoints and concurrent
-plan edits, and reports blocked, failed and exhausted work explicitly. See [release notes](RELEASE_NOTES.md)
-for the changes and verification scope; fresh native-host testing is pending.
+## What's in 1.3.4
 
-## From v1.3.0: work the way you talk
+- Task claims and iteration updates share one transaction; blocked or exhausted queues cannot report completion.
+- Repeated run creation preserves history, and stale snapshot commits cannot overwrite intervening plan edits.
+- MCP tools return standard content envelopes and reject malformed arguments without terminating the server.
+- Finalization requires all intended tasks to be done; persisted status is
+  assessed separately from completion evidence.
 
-The published v1.3.0 release is a major workflow release. You no longer need
-to remember commands —
-the harness meets you at the level of your request.
+This is a maintenance release. It includes the workflow foundation introduced
+in the family since v1.3.0 and subsequent reliability work. For Kimi and DeepSeek,
+that describes inherited family behavior, not prior public releases of these
+ports. The details below describe the cumulative v1.3.4 experience; the
+[release notes](RELEASE_NOTES.md) distinguish this patch's fixes from inherited
+features. No new speed, token-saving or cost claim is made.
+
+| Family milestone | What you get in the current package |
+| --- | --- |
+| v1.3.0 foundation | Natural-language entry, editable plans, durable decisions and verification tiers. |
+| v1.3.1 reliability | Clearer execution intent, safer isolation and evidence comparisons. |
+| v1.3.2 handoff | Revision-bound verification-report contracts; generic completion APIs have separate limits. |
+| v1.3.3 hardening | Host-specific hook, MCP and publication repairs. |
+| v1.3.4 maintenance | The run-integrity and native-adapter fixes listed above. |
 
 ### Just ask, or use a command — both work
 
@@ -41,7 +62,7 @@ execution by itself.
 Plans are Markdown you own. Edit them mid-run; the harness reconciles your
 changes at execution boundaries instead of overwriting them:
 
-- Cosmetic edits (wording, reordering, checking a box) keep all evidence.
+- Cosmetic wording and ordering edits preserve existing evidence.
 - Semantic edits (acceptance, dependencies, verification commands) invalidate
   only the affected task and its dependents — unrelated work is untouched.
 - Your checkbox is an *assertion*, not a verdict: a checked box alone never
@@ -58,11 +79,11 @@ can override your current instructions.
 
 ### Verification sized to the change
 
-Checks run once, at the right tier: documentation edits get a light inspect
-(V0), small changes a focused check (V1), cross-module behavior an integration
-scenario (V2), and security/release boundaries the comprehensive gate (V3,
-normally in CI). A green check is reused while its inputs are unchanged — the
-same test is never rerun just because a phase changed.
+The workflow calls for verification sized to the change: a documentation
+inspection (V0), a focused check (V1), an integration scenario (V2), or a
+comprehensive security/release gate (V3, normally in CI). Valid evidence may be
+reused while its inputs match; affected, missing or stale checks must rerun.
+Native execution still needs acceptance in the selected host.
 
 Milestones, decision gates, and full state/version semantics are shared
 byte-identically with LazyBuddy, LazyTrae, and LazyQoder (see
@@ -85,7 +106,9 @@ The assistant can run local checks and guide the host steps. Installing or
 enabling the plugin grants it code-execution trust, so approve those actions
 in ZCode after reviewing the source.
 
-## Direct marketplace setup
+## Manual setup
+
+### Direct marketplace setup
 
 1. Open a workspace in ZCode. Go to **Settings → Plugins → Create → Add
    marketplace** and enter `https://github.com/elvinzhao10/LazyZCode`.
@@ -93,7 +116,7 @@ in ZCode after reviewing the source.
 2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
    plugins are enabled by default.
    If you installed an earlier v1.3.4 candidate, a marketplace refresh alone
-   will not replace its cached plugin. After this fix reaches `main`, uninstall
+   will not replace its cached plugin. For a cached pre-fix copy, uninstall
    that copy in **Manage installed**, refresh the marketplace, and install it
    again; then start a fresh session to check that the duplicate-hook warning
    is gone.
@@ -104,7 +127,7 @@ in ZCode after reviewing the source.
    (and under **Settings → Skills**, Plugin Skills group); commands appear as
    slash menu entries such as `/lazy-ulw-plan`.
 
-## Native onboarding
+### Native onboarding
 
 `bash scripts/install.sh` verifies Node.js LTS 20+ and
 Git, validates both marketplace manifests, runs the package load-check and
@@ -118,11 +141,11 @@ never prove host readiness — the script ends with **HOST READINESS: PENDING**
 until a fresh session shows one real skill/command and all six MCP
 connections.
 
-## Manual setup
+### Durable lifecycle
 
 Manual setup is available when you prefer complete control. You need
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** — the lifecycle
-also accepts Node.js LTS 20 for compatibility — and **Git**. Start from the
+also accepts Node.js LTS 20 for compatibility — and **Git**, plus **Python 3.10+** available as `python3`. Start from the
 verified origin
 `https://github.com/elvinzhao10/LazyZCode` and follow the
 [installation guide](docs/03-install-and-host-verification.md).
@@ -198,28 +221,46 @@ safe package checks separate from marketplace and connector changes.
 | Hook events | 7 | Advisory local-policy hooks on ZCode's SessionStart, UserPromptSubmit, PreToolUse, PermissionRequest, PostToolUse, PostToolUseFailure, and Stop events. |
 | MCP declarations | 6 | Local services for ledger, verification, status, context, code intelligence, and docs. |
 
+## LazySeries family
+
+**One workflow philosophy. Six host integrations.** Choose the sibling for the
+host you use; each keeps its own native adapters, installation route and
+acceptance evidence. These packages run independently.
+
+| Sibling | Target host |
+| --- | --- |
+| [LazyBuddy](https://github.com/elvinzhao10/LazyBuddy) | CodeBuddy CLI / IDE · WorkBuddy |
+| [LazyTrae](https://github.com/elvinzhao10/LazyTrae) | TraeCode / TraeWork / TraeCode CLI |
+| [LazyQoder](https://github.com/elvinzhao10/LazyQoder) | Qoder CLI / IDE / app |
+| [LazyZCode](https://github.com/elvinzhao10/LazyZCode) **← you are here** | ZCode |
+| [LazyKimi](https://github.com/elvinzhao10/LazyKimi) | Kimi Code CLI · Kimi Work (experimental) |
+| [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.0-rc.2 |
+
+The family shares planning, evidence, decision-memory and completion contracts.
+Matching contracts do not make host capabilities interchangeable. In particular,
+Kimi Work remains experimental for LazyKimi, and DeepSeek's synthesized events
+are not native hooks. Use each sibling's host guide before installation.
+
 ## Technical reference and evaluation
 
 The source-level explanation lives in [docs/README.md](docs/README.md). It
 maps the package structure, request flow, state model, security boundaries,
 MCP lifecycle, and release checks with diagrams tied to the implementation.
 
-For a capability-by-capability comparison with the original LazyZCodex design,
+For a capability-by-capability comparison with the original LazyCodex design,
 including what LazyZCode implements and where it intentionally differs, see
 [lazyzcode-evaluation.md](lazyzcode-evaluation.md).
 
-LazyZCode is primarily inspired by LazyZCodex
-([upstream project](https://github.com/code-yeongyu/lazyzcodex)). Its
+LazyZCode is primarily inspired by LazyCodex
+([upstream project](https://github.com/code-yeongyu/lazycodex)). Its
 relationship to OmO and upstream sources is recorded in [NOTICE](NOTICE).
-It is an independent implementation and does not require LazyZCodex or OmO at
+It is an independent implementation and does not require LazyCodex or OmO at
 runtime.
 
 ## Learn more
 
 - [Install and verify a host](docs/03-install-and-host-verification.md)
 - [Remove receipt-owned assets safely](docs/08-safe-removal.md)
-- [Historical v1.3.0 route](docs/v1.3.0-supported-route.md)
-- [Published v1.3.0 release notes](docs/v1.3.0-release-notes.md)
 - [Workflow playbooks — how the modes pick work](docs/04-workflow-playbooks.md)
 - [Evidence and completion — what "done" proves](docs/05-evidence-and-completion.md)
 - [Host routes and recovery](docs/reference/host-routes.md)

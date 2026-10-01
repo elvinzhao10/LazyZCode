@@ -1,7 +1,8 @@
 NOTICE
 
-LazyQoder is a learning project adapted from LazyCodex for Qoder CN (Alibaba's
-successor to Tongyi Lingma). LazyCodex is the main source for portions of the
+LazyZCode is a workflow harness adapted from LazyCodex and the LazySeries
+sibling implementations for ZCode. LazyCodex is the main source for
+portions of the
 workflow-harness design and skill text; OmO (oh-my-openagent), Copyright (c)
 2026 Yeongyu Kim, is an upstream project referenced by LazyCodex.
 
@@ -17,13 +18,13 @@ Sibling ports:
 
 This repository includes material adapted from LazyCodex under its stated MIT
 license; files that preserve upstream language identify that provenance.
-LazyQoder also contains Qoder CN-specific implementation. Neither LazyCodex nor
-OmO is an operational dependency. OmO is listed for upstream attribution; this
+LazyZCode also contains ZCode-specific implementation.
+Neither LazyCodex nor OmO is an operational dependency. OmO is listed for upstream attribution; this
 notice does not relicense OmO material under different terms.
 
 ## Optional tooling dependencies
 
-LazyQoder may provision the following tools only through caller-selected,
+LazyZCode may provision the following tools only through caller-selected,
 receipt-owned lifecycle commands. They are not LazyCodex or OmO dependencies
 and are not installed globally or into a target repository.
 
