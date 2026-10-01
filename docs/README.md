@@ -1,5 +1,9 @@
 # Technical architecture guide
 
+The current package version is [v1.3.4](../RELEASE_NOTES.md). Package
+verification and fresh native-host acceptance are separate; host acceptance
+remains pending.
+
 This tree explains how LazyZCode is built. It is a source-reading guide, not
 an installation manual: each page names the executable boundary, the data it
 owns, and the evidence that constrains its behavior. Use the root

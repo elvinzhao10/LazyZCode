@@ -2,13 +2,13 @@
 
 This page explains the deployment boundary in code terms. A plugin package contains files a host may load; it does not contain the host's marketplace registry, session state, or connector process table.
 
-## v1.3.4 candidate route and host readiness
+## v1.3.4 route and host readiness
 
 LazyZCode v1.3.4 is prepared as a native ZCode plugin: `plugins/lazyzcode/`
 carries `.zcode-plugin/plugin.json`, and the marketplace root
 `plugins/marketplace.json` lists it for local installs, while the repository-root
-`marketplace.json` enables adding the public GitHub URL. v1.3.2 remains the published stable
-release until the v1.3.4 release workflow completes. The supported route IDs
+`marketplace.json` enables adding the public GitHub URL. The current package
+version is v1.3.4; fresh native-host acceptance remains pending. The supported route IDs
 are `zcode-marketplace` (the full-plugin route) and `manual-skills-mcp-fallback` (recovery only, mutually exclusive
 with a full-plugin route in the same project). v2 records native mode as
 `invoke-documented`, `observe-only`, `descriptor-only`, or `unavailable`;
@@ -162,7 +162,7 @@ It prints `HOST_PREPARATION=not-applied`, `HOST_MUTATION=none`, and
 
 Automated package verification is defined by the product CI workflows (Ubuntu
 and macOS jobs). Supplied host observations are historical macOS reports; they
-do not establish a current v1.3.1 host session. A host that has not been
+do not establish a current v1.3.4 host session. A host that has not been
 observed in a fresh session remains **HOST READINESS: PENDING** regardless of
 package evidence.
 The fallback's exact non-mutating six-entry JSON — with absolute

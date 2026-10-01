@@ -6,13 +6,13 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-The current local release candidate is v1.3.4. Publication and fresh host
-activation remain pending.
+The current package version is v1.3.4. Fresh native-host acceptance remains
+pending; package checks do not prove a host loaded it.
 
 ## v1.3.4
 
-This candidate repairs versioned-cache readiness, restricted-role hooks,
-wrapped shell policy, and deferred MCP behavior. See [release notes](RELEASE_NOTES.md)
+v1.3.4 makes run updates transactional, preserves checkpoints and concurrent
+plan edits, and reports blocked, failed and exhausted work explicitly. See [release notes](RELEASE_NOTES.md)
 for the changes and verification scope; fresh native-host testing is pending.
 
 ## From v1.3.0: work the way you talk
@@ -217,6 +217,7 @@ runtime.
 ## Learn more
 
 - [Install and verify a host](docs/03-install-and-host-verification.md)
+- [Remove receipt-owned assets safely](docs/08-safe-removal.md)
 - [Historical v1.3.0 route](docs/v1.3.0-supported-route.md)
 - [Published v1.3.0 release notes](docs/v1.3.0-release-notes.md)
 - [Workflow playbooks — how the modes pick work](docs/04-workflow-playbooks.md)
