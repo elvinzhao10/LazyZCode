@@ -9,7 +9,7 @@ separate authorities.
 
 ## Current documentation release: v1.3.4
 
-The current local package candidate is v1.3.4. The v1.3.4 tag and release asset are pending publication; fresh ZCode host readiness requires direct observation.
+The package version is v1.3.4; fresh ZCode host readiness requires direct observation.
 This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are
