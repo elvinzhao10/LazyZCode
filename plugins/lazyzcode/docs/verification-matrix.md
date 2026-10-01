@@ -95,5 +95,5 @@ matrix remains self-contained.
 
 LazyZCode is distributed under the MIT License (see `plugins/lazyzcode/LICENSE`
 and the repository root `LICENSE`). Portions of the workflow-harness design and
-skill text derive from LazyZCodex; see the repository root `NOTICE` for full
+skill text derive from LazyCodex; see the repository root `NOTICE` for full
 attribution and copyright notices.

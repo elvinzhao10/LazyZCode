@@ -16,9 +16,9 @@ about undocumented host state is not an installation route.
 > Self-contained workflow harness for ZCode CLI, ZCode IDE, and the ZCode app's Skills/manual-MCP fallback.
 
 This package belongs to the LazyZCode learning project. It is
-primarily inspired by LazyZCodex, while [NOTICE](NOTICE) records LazyZCodex and
+primarily inspired by LazyCodex, while [NOTICE](NOTICE) records LazyCodex and
 OmO upstream attribution. It is an independent implementation and does not
-require LazyZCodex or OmO at runtime.
+require LazyCodex or OmO at runtime.
 
 ## Durable onboarding
 
