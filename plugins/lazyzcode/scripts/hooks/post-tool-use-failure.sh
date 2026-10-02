@@ -7,10 +7,9 @@
 set -uo pipefail
 
 # --- Read event JSON from stdin defensively (cap input at 1 MiB) ---
-INPUT=$(head -c 1048576 || true)
-INPUT_FILE=$(mktemp "${TMPDIR:-/tmp}/lazyzcode-ptuf.XXXXXX")
-trap 'rm -f "$INPUT_FILE"' EXIT
-printf '%s' "$INPUT" >"$INPUT_FILE"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/bounded-input.bash"
+hook_read_input || exit 0
+INPUT_FILE="$HOOK_INPUT_FILE"
 
 python3 - "$INPUT_FILE" <<'PY'
 import datetime
@@ -22,7 +21,7 @@ import sys
 with open(sys.argv[1], encoding='utf-8', errors='replace') as handle:
     try:
         payload = json.loads(handle.read())
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
         raise SystemExit(0)
 
 if not isinstance(payload, dict):

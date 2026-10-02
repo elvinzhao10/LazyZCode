@@ -8,7 +8,7 @@
     {
       "name": "lazyzcode",
       "source": "./lazyzcode",
-      "version": "1.3.4",
+      "version": "1.3.5",
       "description": "Evidence-gated planning, execution, and review workflows.",
       "displayName": "LazyZCode",
       "displayName_i18n": {

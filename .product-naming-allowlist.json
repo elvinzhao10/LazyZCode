@@ -1,20 +1,6 @@
 {
   "formerDisplayNames": [
     {
-      "path": "RELEASE_NOTES.md",
-      "text": "LazyQoder",
-      "count": 4,
-      "classification": "old-release-note",
-      "reason": "Migration and upgrade sections reference the source product this port was bootstrapped from."
-    },
-    {
-      "path": "RELEASE_NOTES.md",
-      "text": "Qoder",
-      "count": 1,
-      "classification": "old-release-note",
-      "reason": "Host capability matrix lineage note describing the earlier host route."
-    },
-    {
       "path": "CHANGELOG.md",
       "text": "LazyQoder",
       "count": 4,
@@ -104,6 +90,34 @@
       "count": 1,
       "classification": "source-identity",
       "reason": "Exact sibling links and host names in the LazySeries family table; not current product identity."
+    },
+    {
+      "path": "docs/reference/platform-status-2026-10-02.md",
+      "text": "LazyQoder",
+      "count": 2,
+      "classification": "source-identity",
+      "reason": "Dated official-source platform comparison names actual sibling packages and native hosts; exact file and count scope."
+    },
+    {
+      "path": "docs/reference/platform-status-2026-10-02.md",
+      "text": "Qoder",
+      "count": 6,
+      "classification": "source-identity",
+      "reason": "Dated official-source platform comparison names actual sibling packages and native hosts; exact file and count scope."
+    },
+    {
+      "path": "plugins/lazyzcode/docs/reference/platform-status-2026-10-02.md",
+      "text": "LazyQoder",
+      "count": 2,
+      "classification": "source-identity",
+      "reason": "Dated official-source platform comparison names actual sibling packages and native hosts; exact file and count scope."
+    },
+    {
+      "path": "plugins/lazyzcode/docs/reference/platform-status-2026-10-02.md",
+      "text": "Qoder",
+      "count": 6,
+      "classification": "source-identity",
+      "reason": "Dated official-source platform comparison names actual sibling packages and native hosts; exact file and count scope."
     }
   ],
   "stableIdentityFiles": [

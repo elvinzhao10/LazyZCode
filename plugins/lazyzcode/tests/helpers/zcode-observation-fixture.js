@@ -50,7 +50,7 @@ function fixture(t) {
     source: {
       route: 'zcode-marketplace', release_root: RELEASE_ROOT,
       manifest: 'plugins/lazyzcode/.zcode-plugin/plugin.json',
-      manifest_sha256: sha(fs.readFileSync(MANIFEST)), plugin: 'lazyzcode', version: '1.3.4',
+      manifest_sha256: sha(fs.readFileSync(MANIFEST)), plugin: 'lazyzcode', version: '1.3.5',
     },
     host: 'zcode', build: 'build:current', session_id: 'session:current', observed_at: OBSERVED_AT,
     capabilities: {

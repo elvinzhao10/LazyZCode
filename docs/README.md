@@ -1,6 +1,6 @@
 # Technical architecture guide
 
-The current package version is [v1.3.4](../RELEASE_NOTES.md). Package
+The current package version is [v1.3.5](../RELEASE_NOTES.md). Package
 verification and fresh native-host acceptance are separate; host acceptance
 remains pending.
 

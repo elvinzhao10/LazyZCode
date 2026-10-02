@@ -70,7 +70,7 @@ test('validates exact marketplace identities and byte-equivalent canonical paylo
   const result = validateMarketplaceRoutes(root);
 
   // Then: the ZCode marketplace route resolves over the canonical payload.
-  assert.equal(result.version, '1.3.4');
+  assert.equal(result.version, '1.3.5');
   assert.equal(result.install_id, 'lazyzcode@lazyzcode');
   assert.equal(result.plugin, 'lazyzcode');
   assert.ok(result.payload_inventory.includes('skills/lazy-programming/SKILL.md'));
@@ -86,7 +86,7 @@ test('validates the canonical payload from an installed plugin without release m
   const result = validateInstalledMarketplacePackage(root);
 
   // Then: its manifest identity and canonical payload remain verifiable.
-  assert.equal(result.version, '1.3.4');
+  assert.equal(result.version, '1.3.5');
   assert.ok(result.payload_inventory.includes('skills/lazy-programming/SKILL.md'));
 });
 
@@ -118,7 +118,7 @@ test('publishes an exact ZCode IDE full-plugin receipt schema', () => {
   assert.deepEqual(capabilities.required, ['skill', 'command', 'agent', 'hook', 'mcp']);
   assert.deepEqual(mcp.required, ['run-ledger', 'verification', 'status-dashboard', 'context-graph', 'code-intel', 'docs']);
   assert.equal(schema.properties.source.properties.route.const, 'zcode-marketplace');
-  assert.equal(schema.properties.source.properties.version.const, '1.3.4');
+  assert.equal(schema.properties.source.properties.version.const, '1.3.5');
   assert.equal(schema.properties.type.const, 'zcode-marketplace-full-plugin');
 });
 
@@ -149,7 +149,7 @@ test('refuses a changed GitHub marketplace entry', (t) => {
 
 test('treats fallback as generated recovery and conflicts with the marketplace plugin route', () => {
   // Given: the full-plugin marketplace route and the manual recovery route.
-  const releaseRoot = '/durable/LazyZCode/releases/v1.3.4-aaaaaaaaaaaa';
+  const releaseRoot = '/durable/LazyZCode/releases/v1.3.5-aaaaaaaaaaaa';
   const projectRoot = '/project';
 
   // When: fallback metadata and the coexistence selection are evaluated.

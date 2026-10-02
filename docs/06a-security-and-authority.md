@@ -6,7 +6,7 @@ The selected ZCode session remains the authority for that host's plugin
 loading, hooks, and MCP connection. Automated package verification is defined
 by the product CI workflows (Ubuntu and macOS jobs). Supplied host
 observations are historical macOS reports; they do not establish a current
-v1.3.4 host session.
+v1.3.5 host session.
 
 ## What the package policy protects
 

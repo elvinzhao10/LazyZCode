@@ -1,6 +1,6 @@
 {
   "name": "@lazyseries/lazyzcode-lsp-python",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "private": true,
   "description": "Locked Python LSP provider for LazyZCode.",
   "engines": {
