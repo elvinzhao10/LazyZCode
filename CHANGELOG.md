@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.5] - 2026-10-02 (candidate)
+
+Execute real runtime-floor and provider checks, bound hook input while preserving host refusal contracts, and update current platform guidance. Optional TypeScript LSP requires Node 22.22.2; the core lifecycle retains its separate Node 20 floor. See RELEASE_NOTES.md for patch details and pending native host acceptance.
+
 ## [1.3.4] - 2026-09-30
 
 Transactional run and hook updates preserve concurrent changes. MCP tools use native content envelopes and isolate malformed requests. Lifecycle and native-host support boundaries are documented in RELEASE_NOTES.md; current-session host acceptance remains pending.
