@@ -66,7 +66,7 @@ assert_registry_only() {
 npm_response="$(rpc '@scope/name' npm)"
 printf '%s' "$npm_response" | grep -q 'npm package'
 assert_registry_only 1
-grep -Fx -- '-sS --proto =https --proto-redir =https --max-redirs 0 --max-time 20 -A lazyzcode-docs/1.3.4 https://registry.npmjs.org/@scope/name/latest' "$CALLS" >/dev/null
+grep -Fx -- '-sS --proto =https --proto-redir =https --max-redirs 0 --max-time 20 -A lazyzcode-docs/1.3.5 https://registry.npmjs.org/@scope/name/latest' "$CALLS" >/dev/null
 
 # Given: a PyPI name and loopback URLs in untrusted registry metadata.
 # When: the real launcher is called.
@@ -75,7 +75,7 @@ grep -Fx -- '-sS --proto =https --proto-redir =https --max-redirs 0 --max-time 2
 pypi_response="$(rpc fastapi pypi)"
 printf '%s' "$pypi_response" | grep -q 'PyPI package'
 assert_registry_only 1
-grep -Fx -- '-sS --proto =https --proto-redir =https --max-redirs 0 --max-time 20 -A lazyzcode-docs/1.3.4 https://pypi.org/pypi/fastapi/json' "$CALLS" >/dev/null
+grep -Fx -- '-sS --proto =https --proto-redir =https --max-redirs 0 --max-time 20 -A lazyzcode-docs/1.3.5 https://pypi.org/pypi/fastapi/json' "$CALLS" >/dev/null
 
 # Given: hostile or malformed library values.
 # When: each is sent to its relevant registry resolver.

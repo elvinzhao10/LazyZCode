@@ -11,22 +11,23 @@
 set -uo pipefail
 
 # --- Read event JSON from stdin defensively (cap input at 1 MiB) ---
-INPUT=$(head -c 1048576 || true)
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/bounded-input.bash"
+hook_read_input || exit 0
 
 # --- Context pressure detection: pass through gracefully ---
 for marker in "context compacted" "context_length_exceeded" "skill descriptions were shortened" "context_too_large"; do
-    if printf '%s' "$INPUT" | grep -qi "$marker"; then
+    if grep -qi "$marker" "$HOOK_INPUT_FILE"; then
         exit 0
     fi
 done
 
 # --- Stop hook active guard: don't re-remind (prevents loops) ---
-STOP_ACTIVE=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('stop_hook_active',''))" 2>/dev/null || echo "")
+STOP_ACTIVE=$(cat "$HOOK_INPUT_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('stop_hook_active',''))" 2>/dev/null || echo "")
 if [ "$STOP_ACTIVE" = "True" ] || [ "$STOP_ACTIVE" = "true" ]; then
     exit 0
 fi
 
-CWD=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('cwd',''))" 2>/dev/null || echo "")
+CWD=$(cat "$HOOK_INPUT_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('cwd',''))" 2>/dev/null || echo "")
 [ -n "$CWD" ] || CWD="$PWD"
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 

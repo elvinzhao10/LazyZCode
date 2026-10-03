@@ -113,8 +113,19 @@ function updateState(active, eventId, occurredAt, outcome = 'requested') {
   }
 }
 
+function readInput() {
+  const input = Buffer.alloc(MAX_INPUT_BYTES + 1);
+  let length = 0;
+  while (length < input.length) {
+    const count = fs.readSync(0, input, length, input.length - length, null);
+    if (count === 0) break;
+    length += count;
+  }
+  return input.subarray(0, length);
+}
+
 function processEvent() {
-  let input = fs.readFileSync(0);
+  let input = readInput();
   if (input.length > MAX_INPUT_BYTES) {
     process.stderr.write(JSON.stringify({ status: 'rejected', reason: 'payload_too_large', detail: `input exceeds ${MAX_INPUT_BYTES} bytes` }) + '\n');
     return;

@@ -29,7 +29,7 @@ Package CI coverage runs on the operating systems and Node versions listed in
 the workflows. Plugin discovery, hooks, MCP calls, specialist behavior,
 cancellation, and completion require separate manual observation in the
 selected current host session. The supplied host observations are historical
-macOS reports and do not establish current v1.3.4 readiness.
+macOS reports and do not establish current v1.3.5 readiness.
 
 ## How to read a regression by boundary
 
@@ -53,7 +53,7 @@ ownership or evidence contract.
 
 Automated CI and package checks do not establish host activation. Current
 observation: no current ZCode session has been observed. The supplied macOS
-host reports are historical and do not establish v1.3.4 behavior. Keep the
+host reports are historical and do not establish v1.3.5 behavior. Keep the
 per-host record below pending until observed; do not fill unknown fields from
 package files or a previous build.
 

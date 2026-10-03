@@ -10,10 +10,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # --- Read event JSON from stdin defensively (cap input at 1 MiB) ---
-INPUT=$(head -c 1048576 || true)
-INPUT_FILE=$(mktemp "${TMPDIR:-/tmp}/lazyzcode-ptu.XXXXXX")
-trap 'rm -f "$INPUT_FILE"' EXIT
-printf '%s' "$INPUT" >"$INPUT_FILE"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/bounded-input.bash"
+hook_read_input || exit 0
+INPUT_FILE="$HOOK_INPUT_FILE"
 
 SLOP_HIT=$(python3 - "$INPUT_FILE" <<'PY'
 import datetime

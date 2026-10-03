@@ -3,7 +3,7 @@ set -euo pipefail
 
 PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export LAZYZCODE_MCP_MODE="${LAZYZCODE_MCP_MODE:-orchestrated}"
-EXPECTED_VERSION="1.3.4"
+EXPECTED_VERSION="1.3.5"
 REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
 
 for server in run-ledger verification status-dashboard context-graph code-intel docs lsp; do
@@ -60,4 +60,4 @@ if marketplace_path.is_file():
     entry = next(item for item in marketplace["plugins"] if item["name"] == "lazyzcode")
     assert entry["version"] == expected, f"marketplace reported {entry['version']!r}"
 PY
-printf 'v1.3.4 runtime version regression: PASS\n'
+printf 'v1.3.5 runtime version regression: PASS\n'

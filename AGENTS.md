@@ -7,9 +7,12 @@ established. Package
 files, host settings, credentials, marketplace state, and live sessions remain
 separate authorities.
 
-## Current documentation release: v1.3.4
+See [the current platform audit](docs/reference/platform-status-2026-10-02.md)
+for version-specific native features and legacy route limits.
 
-The package version is v1.3.4; fresh ZCode host readiness requires direct observation.
+## Current documentation release: v1.3.5
+
+The package version is v1.3.5; fresh ZCode host readiness requires direct observation.
 This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are
@@ -36,6 +39,9 @@ and has readable artifacts. If run creation is interrupted before `state.json`,
 recover only its transaction material, preserve caller files, then retry.
 
 ## Durable onboarding (start here)
+
+Optional TypeScript LSP requires Node.js **22.22.2+**; core lifecycle compatibility
+with Node.js 20 does not imply compatibility with that optional provider.
 
 For new installations, use **Node.js LTS 24 (recommended)** or **Node.js
 LTS 22 (supported alternative)**, plus **Git**. Node.js LTS 20 is also

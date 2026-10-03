@@ -1,8 +1,8 @@
 # Host routes
 
-## v1.3.4 route and host readiness
+## v1.3.5 route and host readiness
 
-This guide describes the current v1.3.4 package for the ZCode host.
+This guide describes the current v1.3.5 package for the ZCode host.
 Native-host readiness remains pending. The ZCode plugin marketplace route
 (`zcode-marketplace`) is the default full-plugin route. The
 `manual-skills-mcp-fallback` route is recovery-only and mutually exclusive

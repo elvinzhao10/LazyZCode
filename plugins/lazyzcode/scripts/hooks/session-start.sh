@@ -8,16 +8,17 @@
 set -uo pipefail
 
 # --- Read event JSON from stdin defensively (cap input at 1 MiB) ---
-INPUT=$(head -c 1048576 || true)
-CWD=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('cwd','.'))" 2>/dev/null || true)
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/bounded-input.bash"
+hook_read_input || exit 0
+CWD=$(cat "$HOOK_INPUT_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('cwd','.'))" 2>/dev/null || true)
 [ -n "$CWD" ] || CWD="$PWD"
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 NOTES_FILE=$(mktemp "${TMPDIR:-/tmp}/lazyzcode-session-start.XXXXXX")
-trap 'rm -f "$NOTES_FILE"' EXIT
+trap 'rm -f "$NOTES_FILE" "$HOOK_INPUT_FILE"' EXIT
 note() { printf '%s\n' "$1" >>"$NOTES_FILE"; }
 
-note "(LazyZCode v1.3.4): Session starting — checking project state..."
+note "(LazyZCode v1.3.5): Session starting — checking project state..."
 
 # --- Bootstrap the .lazyzcode/ directory tree so skills/agents that read
 # plans/, context/, drafts/, or runs/ don't crash on a fresh workspace.
