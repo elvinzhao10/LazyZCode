@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.3.5] - 2026-10-02 (candidate)
+## [1.3.5] - 2026-10-02
 
 Execute real runtime-floor and provider checks, bound hook input while preserving host refusal contracts, and update current platform guidance. Optional TypeScript LSP requires Node 22.22.2; the core lifecycle retains its separate Node 20 floor. See RELEASE_NOTES.md for patch details and pending native host acceptance.
 

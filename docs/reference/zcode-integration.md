@@ -19,9 +19,9 @@ ZCode installs plugins from a marketplace through
 3. Updates: bump `plugins/lazyzcode/.zcode-plugin/plugin.json` and the matching
    `plugins/marketplace.json` and root `marketplace.json` entries, then marketplace **gear → Refresh** →
    plugin details → **Update**.
-   A previously installed same-version candidate will not show an Update;
+   A previously installed same-version copy will not show an Update;
    uninstall it through **Manage installed**, refresh the marketplace, and
-   install again after the fixed commit reaches `main`.
+   install the selected release again.
 4. Removal: **Manage installed** → `lazyzcode` → **Uninstall** (or the disable
    toggle).
 5. Development-only validation: `zcode plugins validate plugins/lazyzcode`.

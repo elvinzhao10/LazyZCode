@@ -115,11 +115,10 @@ in ZCode after reviewing the source.
    For an offline checkout, choose the local directory `<repo>/plugins`.
 2. In **Personal**, open the `lazyzcode` card and click **Install**. Installed
    plugins are enabled by default.
-   If you installed an earlier v1.3.5 candidate, a marketplace refresh alone
-   will not replace its cached plugin. For a cached pre-fix copy, uninstall
-   that copy in **Manage installed**, refresh the marketplace, and install it
-   again; then start a fresh session to check that the duplicate-hook warning
-   is gone.
+   To upgrade an existing installation, refresh the marketplace, open the
+   plugin details, and choose **Update**. If a cached copy has the same
+   version as the selected release, uninstall it in **Manage installed**,
+   refresh, and install again. Start a fresh session after updating.
 3. You need **Node.js LTS 24 (recommended) or 22 (supported alternative)** —
    the lifecycle also accepts Node.js LTS 20 for compatibility — and **Git**
    on `PATH` for the local
