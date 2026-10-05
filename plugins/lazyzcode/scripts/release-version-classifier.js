@@ -3,8 +3,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const RELEASE_VERSION = '1.3.5';
-const PREVIOUS_VERSION = '1.3.4';
+const RELEASE_VERSION = '1.4.0';
+const PREVIOUS_VERSION = '1.3.5';
 const VERSION_JSON_PATHS = [
   ['plugins/lazyzcode/.zcode-plugin/plugin.json', ['version']],
   ['plugins/marketplace.json', ['plugins', 0, 'version']],
@@ -46,6 +46,7 @@ function walk(root, directory = root) {
 
 function previousVersionClassification(relativePath, line) {
   if (relativePath.startsWith('docs/v1.2.') || relativePath.startsWith('docs/v1.3.')) return 'historical-release-document';
+  if (/platform-status-\d{4}-\d{2}-\d{2}\.md$/.test(relativePath)) return 'dated-platform-status-snapshot';
   if (relativePath === 'AGENT_ATTRIBUTION.md' || relativePath === 'CHANGELOG.md') return 'historical-release-history';
   if (relativePath === 'README.md' && /efficiency improvements/i.test(line)) return 'historical-release-summary';
   if (relativePath === 'plugins/lazyzcode/CHANGELOG.md') return 'historical-release-history';
@@ -92,7 +93,7 @@ function classify(root) {
     let contents;
     try { contents = fs.readFileSync(path.join(root, relativePath), 'utf8'); } catch { continue; }
     contents.split('\n').forEach((line, index) => {
-      if (!/(?:^|\/)(?:test|tests)\//.test(relativePath) && !relativePath.startsWith('docs/v1.3.0-') && /\bcurrent\b/i.test(line) && /\b(?:release|version)\b/i.test(line)) {
+      if (!/(?:^|\/)(?:test|tests)\//.test(relativePath) && !relativePath.startsWith('docs/v1.3.0-') && !/platform-status-\d{4}-\d{2}-\d{2}\.md$/.test(relativePath) && /\bcurrent\b/i.test(line) && /\b(?:release|version)\b/i.test(line)) {
         const versions = line.match(/1\.\d+\.\d+/g) || [];
         if (versions.some(version => version !== RELEASE_VERSION)) {
           failures.push(`CURRENT_VERSION_DRIFT_TEXT ${relativePath}:${index + 1}`);

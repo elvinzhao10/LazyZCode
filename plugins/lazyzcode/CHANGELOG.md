@@ -1,5 +1,12 @@
 # LazyZCode Plugin Changelog
 
+## [1.4.0] - Shared dashboard surface and honest capability labels
+
+- Vendor the family's shared dashboard core with hash-pinned metadata; vendored bytes are never edited per package.
+- Add the ZCode-native dashboard-host adapter: authenticated loopback service, browser entry, transactional edits with exact-revision consumption and distinct verifier proof, queue persistence without execution.
+- Extend status-dashboard MCP to six tools with `dashboard_service` and `copy_task_context`; the v133 direct JSON-RPC regression guards the round trip and safety rejections, and the `LAZYZCODE_MCP_MODE` profile gate is unchanged.
+- Report honest capability labels; embedding, chat handoff and wake stay unobserved and host readiness stays pending.
+
 ## [1.3.5] - Runtime verification and platform clarity
 
 - Execute real runtime-floor exercises and check optional LSP requirements separately.

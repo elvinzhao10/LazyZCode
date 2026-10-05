@@ -1,5 +1,5 @@
 #!/bin/bash
-# lazyzcode-verify.sh — Master verification runner (v1.3.5)
+# lazyzcode-verify.sh — Master verification runner (v1.4.0)
 #
 # Runs all health-check scripts in sequence and emits a compact JSON summary.
 # Exit code 0 when all_pass is true; exit code 1 otherwise.
@@ -269,6 +269,7 @@ run_regression_inventory() {
         "v110-zcode-observation-bundle-regression.sh"
         "v120-python-preflight-regression.sh"
         "v120-state-transaction-regression.sh"
+        "v133-status-dashboard-mcp-regression.sh"
         "v2-capability-readiness-contract-regression.sh"
         "v2-host-evidence-contract-regression.sh"
     )

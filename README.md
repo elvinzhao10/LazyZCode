@@ -2,7 +2,7 @@
 
 ![LazyZCode](lazyzcode-banner.png)
 
-[![Package 1.3.5](https://img.shields.io/badge/package-1.3.5-7ce8d1)](RELEASE_NOTES.md)
+[![Package 1.4.0](https://img.shields.io/badge/package-1.4.0-7ce8d1)](RELEASE_NOTES.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-silver)](LICENSE)
 [![LazySeries family](https://img.shields.io/badge/LazySeries-6_siblings-7ce8d1)](#lazyseries-family)
 
@@ -13,25 +13,38 @@ and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
 [Platform status](docs/reference/platform-status-2026-10-02.md) · [Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
-[1.3.5 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
+[1.4.0 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
 
-> **Current package version: v1.3.5. HOST READINESS: PENDING.** Local checks and release
+> **Current package version: v1.4.0. HOST READINESS: PENDING.** Local checks and release
 > archives prove package behavior; a fresh host session must prove loading,
 > command/skill execution and MCP connections.
 
-## What's in 1.3.5
+## What's in 1.4.0
 
+- A shared dashboard core is vendored in the package, with a native ZCode
+  adapter (`plugins/lazyzcode/shared/dashboard-host/`) behind an authenticated
+  loopback service and a browser UI.
+- The status-dashboard MCP server now exposes six tools: the four status views
+  plus `dashboard_service` and `copy_task_context`; the
+  `v133-status-dashboard-mcp-regression.sh` test guards the JSON-RPC behavior.
+- Capability labels are honest: `browser`, `transactional_edits`,
+  `project_queue`, `context_copy` and `observations` are available;
+  `embedding`, `chat_handoff` and `wake` are unobserved; native host readiness
+  stays pending.
+- The MCP profile gate (`LAZYZCODE_MCP_MODE`, orchestrated versus direct) is
+  unchanged by the dashboard surface.
 - Runtime checks execute real package and lifecycle paths; unknown exercises and failed checks cannot report success.
 - Core and optional TypeScript LSP requirements are checked separately, including unsupported runtimes.
 - Hook input is bounded before parsing and stays out of process arguments.
 - Platform guides distinguish current native capabilities, legacy routes and integrations awaiting live acceptance.
 
-This is a maintenance release. It includes the workflow foundation introduced
-in the family since v1.3.0 and subsequent reliability work. For Kimi and DeepSeek,
-that describes inherited family behavior, not prior public releases of these
-ports. The details below describe the cumulative v1.3.5 experience; the
-[release notes](RELEASE_NOTES.md) distinguish this patch's fixes from inherited
-features. No new speed, token-saving or cost claim is made.
+This is a documentation and surface release. It includes the workflow
+foundation introduced in the family since v1.3.0 and subsequent reliability
+work. For Kimi and DeepSeek, that describes inherited family behavior, not
+prior public releases of these ports. The details below describe the cumulative
+v1.4.0 experience; the [release notes](RELEASE_NOTES.md) distinguish this
+release's additions from inherited features. No new speed, token-saving or cost
+claim is made.
 
 | Family milestone | What you get in the current package |
 | --- | --- |
@@ -41,6 +54,31 @@ features. No new speed, token-saving or cost claim is made.
 | v1.3.3 hardening | Host-specific hook, MCP and publication repairs. |
 | v1.3.4 maintenance | Transactional run integrity, safer lifecycle and native adapter repairs. |
 | v1.3.5 repairs | Real runtime exercises, bounded hooks, dependency updates and current platform guidance. |
+| v1.4.0 dashboard | Shared dashboard core vendored, native adapter with authenticated loopback service, six-tool status-dashboard MCP, honest capability labels. |
+
+## Shared dashboard surface
+
+The package ships a portable dashboard core
+(`plugins/lazyzcode/shared/dashboard/`, hash-pinned through
+`dashboard.vendor.json`) and a ZCode-native adapter under
+`plugins/lazyzcode/shared/dashboard-host/`. The adapter is driven by
+`cli.mjs start|status|open|stop` and reports `entry: 'browser'` with the
+capability labels above.
+
+- The service listens on an authenticated loopback address only; the browser UI
+  offers Work, Verification and Plan-edit views, a task inspector, an evidence
+  preview dialog, and queue planning.
+- Queue planning can create, amend and reorder queued plans; queue edits never
+  start work. Edits stay pending until an exact revision is consumed and a
+  distinct independent verifier proves them.
+- The status-dashboard MCP server exposes `dashboard_service` (start, inspect,
+  stop, or return the local browser dashboard entry) and `copy_task_context`
+  (copy a validated native ZCode producer context without executing or
+  consuming it) alongside the four status views. The MCP profile gate
+  (`LAZYZCODE_MCP_MODE`) is unchanged.
+- These are package capabilities. They do not change host readiness: embedding,
+  chat handoff and wake remain unobserved, and **HOST READINESS: PENDING**
+  stays authoritative.
 
 ### Just ask, or use a command — both work
 
@@ -236,7 +274,8 @@ acceptance evidence. These packages run independently.
 | [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.0-rc.2 |
 
 The family shares planning, evidence, decision-memory and completion contracts.
-The first shared verification core is vendored in every package; product adapters keep host setup and permissions explicit. Matching contracts do not make host capabilities interchangeable. In particular,
+The first shared verification core and a shared dashboard core are vendored in
+every package; product adapters keep host setup and permissions explicit. Matching contracts do not make host capabilities interchangeable. In particular,
 Kimi Work remains experimental for LazyKimi, and DeepSeek's synthesized events
 are not native hooks. Use each sibling's host guide before installation.
 
