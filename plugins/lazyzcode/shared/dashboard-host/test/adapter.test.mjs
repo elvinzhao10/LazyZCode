@@ -25,7 +25,7 @@ async function http(origin, path, options = {}) {
 }
 const completion = (planRevision, sourceRevision, criterionVersion = 2) => ({ task_id: 'A', criterion_id: 'C1', criterion_version: criterionVersion, plan_revision: planRevision,
   source_revision: sourceRevision, artifact_path: '.lazyzcode/runs/probe/actual.txt', executor_id: 'worker:zcode-executor',
-  executor_attempt_id: 'executor:zcode', verifier_id: 'worker:zcode-verifier', verifier_attempt_id: 'verifier:zcode', package_version: '1.3.5' });
+  executor_attempt_id: 'executor:zcode', verifier_id: 'worker:zcode-verifier', verifier_attempt_id: 'verifier:zcode', package_version: '1.4.0' });
 
 test('ZCode native edit stays pending until an exact revision is consumed and a distinct verifier proves it', async () => {
   const f = await fixture();

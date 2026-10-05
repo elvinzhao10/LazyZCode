@@ -1,3 +1,76 @@
+# LazyZCode v1.4.0 - shared dashboard surface and honest capability labels
+
+A documentation and surface release across the LazySeries siblings. It vendors
+the family's shared dashboard core and documents the ZCode-native adapter
+without changing host-readiness boundaries or the MCP profile gate.
+
+## Eval-driven fixes
+
+- A portable dashboard core is vendored under
+  `plugins/lazyzcode/shared/dashboard/` with hash-pinned vendoring metadata
+  (`dashboard.vendor.json`); the vendored bytes are not edited per package.
+- The ZCode-native adapter (`plugins/lazyzcode/shared/dashboard-host/`) is
+  covered by an adapter suite: edits stay pending until an exact revision is
+  consumed, a distinct independent verifier proves them, queue persistence
+  never executes work, and the owned loopback lifecycle emits signed receipts.
+- The status-dashboard MCP server exposes six tools: the four status views
+  plus `dashboard_service` (start, inspect, stop, or return the local browser
+  dashboard entry) and `copy_task_context` (copy a validated native ZCode
+  producer context without executing or consuming it). The
+  `v133-status-dashboard-mcp-regression.sh` test drives the JSON-RPC behavior
+  directly, and the MCP profile gate (`LAZYZCODE_MCP_MODE`) is unchanged.
+- The dashboard-host adapter suite, MCP test script, v133 direct regression,
+  marketplace route contract, publication regression, package verification,
+  product-naming check and the Node.js 20 supported-floor spot were re-run for
+  this release.
+
+## Measured efficiency
+
+No latency, token, cost or native-host performance improvement is claimed.
+The dashboard service is a local loopback convenience surface; it does not
+change execution authority or add host capabilities.
+
+## Host capability matrix
+
+Adapter capabilities are reported explicitly: `browser`, `transactional_edits`,
+`project_queue`, `context_copy` and `observations` are `available`;
+`embedding`, `chat_handoff` and `wake` are `unobserved`;
+`native_host_readiness` is `pending`. The browser UI offers Work,
+Verification and Plan-edit views, a task inspector, an evidence preview
+dialog, and queue planning; queue edits can create, amend and reorder queued
+plans, and queue edits never start work.
+
+See [the dated platform audit](docs/reference/platform-status-2026-10-02.md).
+That snapshot records the v1.3.5 review date and is preserved as a historical
+document; it does not describe the dashboard surface.
+**HOST READINESS: PENDING** until the selected current client demonstrates
+discovery, skill/command execution, relevant hooks and MCP connections.
+
+## Migration and upgrade
+
+Use the receipt-aware lifecycle update with an explicit project binding.
+Preserve populated run state, modified assets, unknown files and host settings.
+Read [AGENTS.md](AGENTS.md), [README.md](README.md) and the selected host
+guide.
+
+## Known risks
+
+Authenticated current-client acceptance remains pending. The dashboard
+surface is a package capability: a copied configuration, manifest validation,
+or isolated lifecycle fixture cannot establish host loading. Embedding, chat
+handoff and wake remain unobserved, and nothing in this release claims host
+support for them. Vendored dashboard bytes are hash-pinned; local edits would
+break the pin, not extend the surface.
+
+## Rollback
+
+Retain the previous release and receipts. Existing 1.3.5 tags and assets
+remain intact. Follow the scoped lifecycle removal or rollback plan,
+preserving user-modified and foreign assets. Host-managed registrations
+require their selected client's removal flow.
+
+## Prior release notes
+
 # LazyZCode v1.3.5 - runtime verification and platform clarity
 
 A maintenance release across the six LazySeries siblings. It carries forward

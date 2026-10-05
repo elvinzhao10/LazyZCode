@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.0] - 2026-10-05
+
+Vendor the family's shared dashboard core and document the ZCode-native adapter: an authenticated loopback service behind `cli.mjs start|status|open|stop`, a browser UI with Work/Verification/Plan-edit views, task inspector, evidence preview and queue planning (queue edits never start work), six status-dashboard MCP tools (`dashboard_service`, `copy_task_context`) guarded by the v133 direct JSON-RPC regression, an unchanged MCP profile gate (`LAZYZCODE_MCP_MODE`), and honest capability labels (embedding/chat handoff/wake unobserved; host readiness pending). See RELEASE_NOTES.md.
+
 ## [1.3.5] - 2026-10-02
 
 Execute real runtime-floor and provider checks, bound hook input while preserving host refusal contracts, and update current platform guidance. Optional TypeScript LSP requires Node 22.22.2; the core lifecycle retains its separate Node 20 floor. See RELEASE_NOTES.md for patch details and pending native host acceptance.

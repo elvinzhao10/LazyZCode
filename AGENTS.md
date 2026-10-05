@@ -10,9 +10,9 @@ separate authorities.
 See [the current platform audit](docs/reference/platform-status-2026-10-02.md)
 for version-specific native features and legacy route limits.
 
-## Current documentation release: v1.3.5
+## Current documentation release: v1.4.0
 
-The package version is v1.3.5; fresh ZCode host readiness requires direct observation.
+The package version is v1.4.0; fresh ZCode host readiness requires direct observation.
 This guide names current
 human-facing boundaries only and does not
 promote package evidence to host proof. The route IDs are
