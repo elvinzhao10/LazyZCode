@@ -269,6 +269,7 @@ run_regression_inventory() {
         "v110-zcode-observation-bundle-regression.sh"
         "v120-python-preflight-regression.sh"
         "v120-state-transaction-regression.sh"
+        "v133-status-dashboard-mcp-regression.sh"
         "v2-capability-readiness-contract-regression.sh"
         "v2-host-evidence-contract-regression.sh"
     )
