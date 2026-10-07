@@ -8,7 +8,7 @@ without changing host-readiness boundaries or the MCP profile gate.
 
 - The persistent project record is vendored as the family's second pinned
   tree: `plugins/lazyzcode/shared/project/` + `project.vendor.json` re-pin to
-  family tree `95c0e0fc…` (source revision `7bf5bd8`). ZCode's adapter keeps
+  family tree `1feb5646…` (source revision `537f393`). ZCode's adapter keeps
   its own authority — transactions, bounded producers/verifier publication,
   and the `LAZYZCODE_MCP_MODE` profile gate — over the shared runtime's
   init/read/command/observe routes, registered original-source editing,
