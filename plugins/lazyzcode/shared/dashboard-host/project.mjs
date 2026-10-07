@@ -225,6 +225,7 @@ function contextSummary(snapshot) {
     artifacts: { total: (snapshot.artifacts ?? []).length },
     boundaries: { native_delivery: 'unobserved', host_wake: 'unclaimed',
       mcp_mode_gate: 'status-dashboard profile gate applies before any project tool',
+      git_observation: 'vendored collectors byte-pinned but not wired to any ZCode-exposed route; commit links are run-side repo_head/content_revision only',
       consumption: 'reported by the native runtime only; never inferred from file writes' },
   };
 }
