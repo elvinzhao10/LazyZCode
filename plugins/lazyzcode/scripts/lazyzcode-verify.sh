@@ -418,6 +418,12 @@ run_language_tests() {
     while IFS= read -r test_path; do
         node_test_paths+=("$test_path")
     done < <(find "${PLUGIN_ROOT}/contracts/tests" -maxdepth 1 -type f -name '*.test.js' -print | LC_ALL=C sort)
+    # Dashboard-host adapter tests (dashboard + project families) prove the
+    # native host routes end to end; they join the same Node phase so a
+    # broken adapter cannot pass the release gate through a separate lane.
+    while IFS= read -r test_path; do
+        node_test_paths+=("$test_path")
+    done < <(find "${PLUGIN_ROOT}/shared/dashboard-host/test" -maxdepth 1 -type f -name '*.test.mjs' -print | LC_ALL=C sort)
     if [ "${#node_test_paths[@]}" -eq 0 ]; then
         printf 'ERROR: no package-local Node tests found\n' >&2
         NODE_TESTS_RESULT="fail"
