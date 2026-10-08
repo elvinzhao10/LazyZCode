@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstat, mkdtemp, readdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -280,6 +280,69 @@ test('status-dashboard MCP project tool round trip honors the mode gate', async 
     assert.match(gated.stderr.toString(), /MCP_PROFILE_INVALID/);
     assert.equal(gated.stdout.toString(), '', 'no project tool output escapes the gate');
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+// F-04: the neutral registry is shared across runtimes. A registry another
+// runtime owns is foreign state: init refuses typed instead of creating a
+// second owner, and the foreign registry stays byte-identical.
+test('init refuses a registry another runtime owns and never adopts its identity', async () => {
+  const f = await fixture();
+  try {
+    await writeFile(join(f.root, 'project-plan.md'), '# ZCode foreign-registry plan\n');
+    const registryPath = join(f.root, '.lazyseries/project.json');
+    const foreign = { schema_version: 1, project_id: 'project:zcode',
+      repository_key: `repo:${'ab'.repeat(32)}`, runtime: 'LazyBuddy',
+      created_at: '2026-10-01T00:00:00.000Z',
+      sources: [{ id: 'source:plan', role: 'plan', path: 'project-plan.md' }] };
+    await mkdir(join(f.root, '.lazyseries'), { mode: 0o700 });
+    await writeFile(registryPath, JSON.stringify(foreign) + '\n', { mode: 0o600 });
+    const owned = await readFile(registryPath);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const refused = await f.call('project.mjs', 'init', []);
+      assert.notEqual(refused.code, 0, `foreign-runtime init attempt ${attempt} must fail closed`);
+      assert.equal(refused.stderr.trim(), 'REGISTRY_FOREIGN_RUNTIME');
+      assert.equal((await readFile(registryPath)).equals(owned), true,
+        'a refused init must leave the foreign registry byte-identical');
+    }
+    assert.equal(await lstat(join(f.root, '.lazyzcode/project')).then(() => true, () => false), false,
+      'a refused foreign-runtime init creates no second project owner');
+    const registry = JSON.parse(await readFile(registryPath, 'utf8'));
+    assert.equal(registry.runtime, 'LazyBuddy');
+    assert.equal(registry.sources.length, 1, 'the owning runtime source list stays stable');
+  } finally { await f.cleanup(); }
+});
+
+// F-04 mirror guard: a matching runtime proceeds normally, and a store that
+// already exists refuses to rewrite the pointer list of a foreign registry.
+test('matching-runtime init stays idempotent and the source mirror refuses a foreign runtime', async () => {
+  const f = await fixture();
+  try {
+    const planText = '# ZCode mirror-guard plan\n';
+    await writeFile(join(f.root, 'project-plan.md'), planText);
+    assert.equal((await f.call('project.mjs', 'init', [])).code, 0);
+    const again = await f.call('project.mjs', 'init', []);
+    assert.equal(again.code, 0, again.stderr);
+    const command = (command_id, expected_revision, operation, payload) => f.call('project.mjs', 'command', [], JSON.stringify(
+      { schema_version: 1, command_id, project_id: 'project:zcode', expected_revision, operation, payload }));
+    const registered = await command('cmd:source', 0, 'register_source', { id: 'source:plan', role: 'plan', path: 'project-plan.md' });
+    assert.equal(JSON.parse(registered.stdout).receipt.status, 'saved');
+    const registryPath = join(f.root, '.lazyseries/project.json');
+    const mirrored = JSON.parse(await readFile(registryPath, 'utf8'));
+    assert.equal(mirrored.runtime, 'LazyZCode');
+    assert.deepEqual(mirrored.sources.map(source => source.id), ['source:plan']);
+    // Damaged state: the shared registry document is replaced by a foreign
+    // runtime's while the store identity stays bound. A further mutation must
+    // refuse instead of flapping the foreign source pointer list.
+    await writeFile(join(f.root, 'other-plan.md'), '# Other plan\n');
+    const flipped = { ...mirrored, runtime: 'LazyBuddy' };
+    await writeFile(registryPath, JSON.stringify(flipped) + '\n');
+    const foreignBytes = await readFile(registryPath);
+    const flapped = await command('cmd:other', 1, 'register_source', { id: 'source:other', role: 'plan', path: 'other-plan.md' });
+    assert.notEqual(flapped.code, 0, 'a foreign-runtime registry must not be mirrored');
+    assert.equal(flapped.stderr.trim(), 'REGISTRY_FOREIGN_RUNTIME');
+    assert.equal((await readFile(registryPath)).equals(foreignBytes), true,
+      'the refused mirror leaves the foreign registry byte-identical');
+  } finally { await f.cleanup(); }
 });
 
 test('per-surface capability record claims no observed host adoption', () => {
