@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.0] - 2026-10-07 — project platform
+
+Adopt the family's persistent project platform through the ZCode-native adapter: the vendored `plugins/lazyzcode/shared/project/` family re-pins to tree `1feb5646…` (source revision `537f393`; its README no longer links files the family selection excludes and its CLI entry guard resolves symlinked invocation paths instead of silently no-oping), while ZCode's transactions, bounded producers, verifier publication, and MCP mode gate remain the owning surfaces. Complete the capability record with the three exercised project keys — `project_platform`, `project_source_editing`, and `project_telemetry`, each `available` exactly where the port gate exercised it — and add the no-observed-host-adoption assertion to the project-adapter suite (mutation-proven). The project context summary gains the explicit git-observation boundary: the vendored collectors are byte-pinned but wired to no ZCode-exposed route, and commit links stay run-side (`repo_head`/`content_revision`). Host embedding, chat handoff, and wake remain unobserved; host readiness stays pending. See RELEASE_NOTES.md.
+
 ## [1.4.0] - 2026-10-05
 
 Vendor the family's shared dashboard core and document the ZCode-native adapter: an authenticated loopback service behind `cli.mjs start|status|open|stop`, a browser UI with Work/Verification/Plan-edit views, task inspector, evidence preview and queue planning (queue edits never start work), six status-dashboard MCP tools (`dashboard_service`, `copy_task_context`) guarded by the v133 direct JSON-RPC regression, an unchanged MCP profile gate (`LAZYZCODE_MCP_MODE`), and honest capability labels (embedding/chat handoff/wake unobserved; host readiness pending). See RELEASE_NOTES.md.

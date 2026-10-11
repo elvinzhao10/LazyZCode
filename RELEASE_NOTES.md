@@ -4,6 +4,26 @@ A documentation and surface release across the LazySeries siblings. It vendors
 the family's shared dashboard core and documents the ZCode-native adapter
 without changing host-readiness boundaries or the MCP profile gate.
 
+## Project platform (2026-10-07)
+
+- The persistent project record is vendored as the family's second pinned
+  tree: `plugins/lazyzcode/shared/project/` + `project.vendor.json` re-pin to
+  family tree `1feb5646…` (source revision `537f393`). ZCode's adapter keeps
+  its own authority — transactions, bounded producers/verifier publication,
+  and the `LAZYZCODE_MCP_MODE` profile gate — over the shared runtime's
+  init/read/command/observe routes, registered original-source editing,
+  reconciliation, and telemetry.
+- The capability record completes to the family key set with the three
+  exercised project keys (`project_platform`, `project_source_editing`,
+  `project_telemetry`, each `available` exactly where the port gate exercised
+  it), and the project-adapter suite now asserts no capability key ever claims
+  observed host adoption (mutation-proven).
+- Boundaries stay explicit in the project context summary: the vendored
+  git-observation collectors are byte-pinned but wired to no ZCode-exposed
+  route (commit links are run-side `repo_head`/`content_revision`); host
+  embedding, chat handoff, and host wake remain unobserved; native host
+  readiness stays pending.
+
 ## Eval-driven fixes
 
 - A portable dashboard core is vendored under
