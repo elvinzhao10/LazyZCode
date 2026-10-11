@@ -919,7 +919,7 @@ def reduce_observe(node: str, state: dict, records: object) -> dict:
 
 
 def main(arguments: list[str]) -> object:
-    if len(arguments) != 9 or arguments[0] not in ("init", "read", "command", "observe") \
+    if len(arguments) != 9 or arguments[0] not in ("init", "read", "source", "command", "observe") \
             or len(set(arguments[1::2])) != 4:
         raise ProjectError("INVALID_ARGUMENTS")
     action = arguments[0]
@@ -934,13 +934,17 @@ def main(arguments: list[str]) -> object:
     if not root.startswith("/") or str(Path(root).resolve()) != root:
         raise ProjectError("UNSAFE_PROJECT_ROOT")
     request = None
-    if action in ("command", "observe"):
+    if action in ("command", "source", "observe"):
         content = sys.stdin.buffer.read(LIMIT + 1)
         if len(content) > LIMIT:
             raise ProjectError("INPUT_TOO_LARGE")
         request = strict_json(content)
         if action == "command" and not isinstance(request, dict):
             raise ProjectError("INVALID_COMMAND")
+        if action == "source" and (not isinstance(request, dict) or set(request) != {"source_id"}
+                                   or not isinstance(request.get("source_id"), str)
+                                   or not request["source_id"] or len(request["source_id"]) > 256):
+            raise ProjectError("INVALID_SOURCE_REQUEST")
         if action == "observe" and (not isinstance(request, list) or not request):
             raise ProjectError("INVALID_OBSERVATIONS")
     facts = worktree_facts(root)
@@ -1048,6 +1052,11 @@ def main(arguments: list[str]) -> object:
                             files.journal_unlink(entry_name)
                         state = reduction["state"]
                         state_changed = True
+            if action == "source":
+                source = next((entry for entry in state["sources"] if entry["id"] == request["source_id"]), None)
+                if source is None:
+                    raise ProjectError("UNKNOWN_SOURCE")
+                return capture_source(files, source["id"], source["path"])
             recorded = None
             if action == "observe":
                 # Observations never append command receipts or grant authority; only
