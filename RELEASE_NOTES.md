@@ -18,11 +18,13 @@ without changing host-readiness boundaries or the MCP profile gate.
   `project_telemetry`, each `available` exactly where the port gate exercised
   it), and the project-adapter suite now asserts no capability key ever claims
   observed host adoption (mutation-proven).
-- Boundaries stay explicit in the project context summary: the vendored
-  git-observation collectors are byte-pinned but wired to no ZCode-exposed
-  route (commit links are run-side `repo_head`/`content_revision`); host
-  embedding, chat handoff, and host wake remain unobserved; native host
-  readiness stays pending.
+- Boundaries stay explicit in the project context summary: the served dashboard
+  does expose a live git view — a live probe saw `/api/project/git` answer 200
+  behind the authenticated session and invoke the vendored
+  `git-observation/local` collector, reporting `observed` with the fixture's
+  commit facts (unauthenticated reads reject 401); run-side commit links stay
+  `repo_head`/`content_revision`; host embedding, chat handoff, and host wake
+  remain unobserved; native host readiness stays pending.
 
 ## Eval-driven fixes
 
