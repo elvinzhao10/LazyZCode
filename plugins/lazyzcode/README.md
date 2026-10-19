@@ -283,9 +283,12 @@ dependencies or guess commands; a timed-out selected check exits `124`.
 Automatic workflow selection chooses the smallest sufficient existing workflow
 from task risk and complexity. It is selection-only until host readiness is
 observed: package output must not claim native workflow loading or host
-dispatch. The compact task packet is 1,637 bytes rather than 2,285 bytes
-(648 bytes / 28.36% smaller); required safety, approval, evidence, review, and
-completion gates are unchanged.
+dispatch. ZCode documents native dynamic workflows behind the `/workflow`
+entry point (official changelog v3.14.0, 2026-09-19); that surface is treated
+as documented-untested, so selection remains package-side until a fresh
+session observes native loading or dispatch. The compact task packet is 1,637
+bytes rather than 2,285 bytes (648 bytes / 28.36% smaller); required safety,
+approval, evidence, review, and completion gates are unchanged.
 
 The installed package carries the versioned automatic-tooling contract and its
 provider-policy adapter. Start with an offline status check or create the

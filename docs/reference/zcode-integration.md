@@ -4,7 +4,9 @@ This page is the concise map of how `plugins/lazyzcode/` integrates with the
 ZCode host. It records what the plugin declares and what ZCode does natively;
 it does not claim that any host has loaded the package. See
 [host routes](host-routes.md) for install/removal protocols and the
-**HOST READINESS: PENDING** discipline.
+**HOST READINESS: PENDING** discipline, and the dated ZCode capability rescan
+at `plugins/lazyzcode/docs/reference/platform-status-2026-10-18.md`
+for the latest observation of the native surfaces summarized here.
 
 ## Install route
 
@@ -60,7 +62,9 @@ same file in the manifest causes a duplicate-hook diagnostic.
 ## Variables and configuration
 
 - `${CLAUDE_PLUGIN_ROOT}` — plugin install root; usable in plugin hook
-  commands and plugin MCP declarations (`.mcp.json`).
+  commands and plugin MCP declarations (`.mcp.json`). ZCode also accepts the
+  `${ZCODE_PLUGIN_ROOT}` spelling as an alias; the package keeps the
+  `CLAUDE_*` spelling.
 - `${CLAUDE_PLUGIN_DATA}` — per-plugin data directory.
 - `${CLAUDE_PROJECT_DIR}` — the consumer project directory (used as `cwd` and
   `CWD`/`CLAUDE_PROJECT_DIR` env by every MCP launcher).
@@ -82,6 +86,18 @@ IDE plan directories. LazyZCode therefore maps:
 - **Planning / execution / review** → `lazy-ulw-plan` (plan),
   `lazy-start-work` (Agent-tool subagents), `lazy-review-work` (five review
   lanes via parallel Agent dispatch).
+- **Multi-agent orchestration** → ZCode documents native dynamic workflows
+  driven by a single script through the `/workflow` entry point (changelog
+  v3.14.0, 2026-09-19). That surface is `documented-untested` for this
+  package: LazyZCode automatic workflow selection stays package-side and
+  selection-only until a fresh session observes native workflow loading or
+  dispatch.
+- **Approvals** → ZCode permission modes are `Ask before changes` (default),
+  `Edit automatically`, `Plan`, and `Full access`, with `Allow` /
+  `Always Allow` / `Reject` / `Always Reject` decisions; permission requests
+  always wait, and hook decisions cannot bypass explicit deny rules,
+  Plan-mode write bans, or hard tool limits. The package's own approval gates
+  remain independent of the active host mode.
 
 ## Harness-primitive mapping
 
@@ -91,6 +107,8 @@ IDE plan directories. LazyZCode therefore maps:
 | Planning | `lazy-ulw-plan` skill + command | Slash menu / Skill-tool invocation |
 | Execution | `lazy-start-work` + subagents | Agent dispatcher |
 | Review | `lazy-review-work` (5 lanes) | Parallel Agent dispatch |
+| Orchestration | package-side automatic workflow selection | Native dynamic workflows (`/workflow`) documented-untested |
+| Approvals | package approval gates | Permission modes + Allow/Always Allow/Reject/Always Reject |
 | Model routing | Agent frontmatter | `model` / `thoughtLevel` |
 | Automation | hooks (7 events) | Hook runner, auto-enabled |
 | Local services | 6 MCP servers | Plugin MCP, auto-connect |
