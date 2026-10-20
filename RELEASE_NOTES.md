@@ -4,11 +4,41 @@ A documentation and surface release across the LazySeries siblings. It vendors
 the family's shared dashboard core and documents the ZCode-native adapter
 without changing host-readiness boundaries or the MCP profile gate.
 
+## Completion pass (2026-10-19)
+
+A scoped completion pass over the 1.4.0 surfaces; every bullet cites the
+branch commit that delivers it.
+
+- Per-repo dashboard isolation: the family-wide per-repo store isolation and
+  foreign-runtime refusal matrix (8d45d22) — a foreign runtime's state and
+  event writes are refused, and each repository's dashboard stores stay
+  isolated to this package's own roots.
+- Served-project truth reconciled (48144e4): the ZCode served dashboard does
+  expose the live git view (`/api/project/git` answers 200 behind the
+  authenticated session and invokes the vendored `git-observation/local`
+  collector); run-side commit links stay `repo_head`/`content_revision`.
+- ZCode host-harness rescan, conservative adoption (72862c2): capability
+  observations refreshed against the live rescan; no unobserved capability
+  is claimed. A pre-existing flaky node test phase (ajv bootstrap) was
+  stabilized without changing what it asserts (914b8b5).
+- Family repin (4156dfa): both vendored families re-pinned at source
+  revision `bb696092` — dashboard tree `e55a9c00…`, project tree `16561f3…`
+  — carrying the family's completed project-dashboard UI (dark-first design
+  tokens v2, de-tabbed shell with the static retractable sidebar and
+  in-place navigation, six redesigned views, navigation guards,
+  measured-and-held performance budgets) into this package byte-identically.
+- Residuals, honestly: host embedding, chat handoff, and host wake remain
+  unobserved; host readiness stays pending; the `LAZYZCODE_MCP_MODE`
+  profile gate is unchanged.
+
 ## Project platform (2026-10-07)
 
 - The persistent project record is vendored as the family's second pinned
-  tree: `plugins/lazyzcode/shared/project/` + `project.vendor.json` re-pin to
-  family tree `1feb5646…` (source revision `537f393`). ZCode's adapter keeps
+  tree: `plugins/lazyzcode/shared/project/` + `project.vendor.json`
+  re-pinned at delivery prep to family tree `1feb5646…` (source revision
+  `537f393`) and in the completion repin to tree `16561f3…` at source
+  revision `bb696092` (4156dfa, alongside the dashboard family at tree
+  `e55a9c00…`). ZCode's adapter keeps
   its own authority — transactions, bounded producers/verifier publication,
   and the `LAZYZCODE_MCP_MODE` profile gate — over the shared runtime's
   init/read/command/observe routes, registered original-source editing,

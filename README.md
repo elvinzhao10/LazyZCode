@@ -33,6 +33,13 @@ session.
   stays pending.
 - The MCP profile gate (`LAZYZCODE_MCP_MODE`, orchestrated versus direct) is
   unchanged by the dashboard surface.
+- The completion pass repinned both vendored families at `bb696092`
+  (dashboard tree `e55a9c00…`, project tree `16561f3…`), carrying the
+  family's redesigned project dashboard — dark-first family design language,
+  a de-tabbed shell with a static retractable sidebar and in-place
+  navigation, six redesigned views — alongside this package's per-repo store
+  isolation matrix and the conservatively refreshed capability observations
+  from the ZCode rescan.
 - Runtime checks execute real package and lifecycle paths; unknown exercises and failed checks cannot report success.
 - Core and optional TypeScript LSP requirements are checked separately, including unsupported runtimes.
 - Hook input is bounded before parsing and stays out of process arguments.
@@ -55,6 +62,7 @@ claim is made.
 | v1.3.4 maintenance | Transactional run integrity, safer lifecycle and native adapter repairs. |
 | v1.3.5 repairs | Real runtime exercises, bounded hooks, dependency updates and current platform guidance. |
 | v1.4.0 dashboard | Shared dashboard core vendored, native adapter with authenticated loopback service, six-tool status-dashboard MCP, honest capability labels. |
+| v1.4.0 completion | Repinned families at `bb696092` with the redesigned project dashboard (dark-first, sidebar shell, in-place navigation), per-repo isolation and refreshed capability observations. |
 
 ## Shared dashboard surface
 
@@ -71,6 +79,17 @@ capability labels above.
 - Queue planning can create, amend and reorder queued plans; queue edits never
   start work. Edits stay pending until an exact revision is consumed and a
   distinct independent verifier proves them.
+- After an explicit project init the served UI mounts the family's project
+  dashboard — a tab-free single surface: a static retractable
+  sidebar (WORKSPACE/OBSERVATION destination groups, 56px icon rail,
+  Cmd/Ctrl+B; Cmd/Ctrl+1..7 jump to destinations) navigates in place over a
+  capped history stack, with the dock inspector on the right. The family
+  design language is dark-first (light/dark/system persists) on design
+  tokens v2. Keyboard map: Tab keeps the native ring; `j`/`k` traverse list
+  scopes; `/` focuses the first filter; Escape closes the topmost overlay
+  and returns focus; segmented controls take Arrow/Home/End. Each
+  repository's dashboard stores stay isolated to that repository, and a
+  foreign runtime's writes are refused.
 - The status-dashboard MCP server exposes `dashboard_service` (start, inspect,
   stop, or return the local browser dashboard entry) and `copy_task_context`
   (copy a validated native ZCode producer context without executing or
