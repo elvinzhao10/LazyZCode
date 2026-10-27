@@ -1,8 +1,8 @@
 # Host routes
 
-## v1.3.5 route and host readiness
+## v1.4.0 route and host readiness
 
-This guide describes the current v1.3.5 package for the ZCode host.
+This guide describes the current v1.4.0 package for the ZCode host.
 Native-host readiness remains pending. The ZCode plugin marketplace route
 (`zcode-marketplace`) is the default full-plugin route. The
 `manual-skills-mcp-fallback` route is recovery-only and mutually exclusive
@@ -18,6 +18,10 @@ current-session receipt.
 Automatic workflow selection chooses the smallest sufficient existing workflow
 from task risk and complexity. Before a current host observation it is
 selection-only, not evidence that a host loaded or dispatched that workflow.
+The 2026-10-18 capability rescan recorded that ZCode now documents native
+dynamic workflows entered through `/workflow` (changelog v3.14.0, 2026-09-19);
+that surface stays `documented-untested` here, and package selection does not
+claim native workflow loading or dispatch without a fresh-session observation.
 
 Use **Node.js LTS 24 (recommended) or 22 (supported alternative)** and
 **Git**; the lifecycle also accepts Node.js LTS 20 for compatibility.
@@ -62,7 +66,9 @@ ZCode manages plugins through **Settings → Plugins**. One approved action at a
    install in the discovery action.
 2. **Install:** after a separate approval, open the **Personal** tab, open the
    `lazyzcode` plugin card, and click **Install**. Installed plugins are
-   enabled by default. Enabling a plugin grants code-execution trust.
+   enabled by default. Enabling a plugin grants code-execution trust. ZCode
+   can also install a plugin per workspace (changelog v3.12.3, 2026-09-17);
+   either scope still requires the same fresh-session observation below.
 3. **Observe:** as a later action, start a fresh session for the project and
    verify one real LazyZCode skill or command plus all six MCP connections.
 
@@ -93,7 +99,7 @@ root is the directory that contains `marketplace.json`.
 - 6 MCP servers auto-connected from the plugin `.mcp.json`, namespaced
   `plugin:lazyzcode:<server>`, gated by the `mcp_mode` plugin user setting
   (`LAZYZCODE_MCP_MODE`: `direct`, `assisted`, `planned`, `orchestrated`,
-  `long-horizon`; empty defers the profile gate).
+  `long-horizon`; empty defaults to orchestrated).
 
 ZCode has no rules-injection mechanism and no daemon/serve/prewarm CLI.
 Project memory is `AGENTS.md` (workspace scope, plus `~/.zcode/AGENTS.md` for

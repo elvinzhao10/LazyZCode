@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-27 platform audit
+
+Correct current dashboard provenance and the status-dashboard MCP inventory to seven tools, including `project`; retain six server declarations. Correct empty MCP mode guidance to the orchestrated default. Document ZCode 3.16.3 contracts and pending native-host acceptance. No new efficiency claim is made.
+
+## [1.4.0] - 2026-10-19 — completion pass (isolation, rescan, repin)
+
+Historical 2026-10-19 completion pass: the family-wide per-repo store isolation and foreign-runtime refusal matrix (8d45d22); the reconciled served-project truth stating the live git view explicitly (`/api/project/git`, 200 behind the session, vendored local collector; run-side links stay `repo_head`/`content_revision`) (48144e4); the conservative ZCode rescan outcome — capability observations refreshed, no unobserved capability claimed (72862c2) — with the pre-existing flaky node test phase (ajv bootstrap) stabilized (914b8b5); and the family repin at source revision `bb696092` — dashboard tree `e55a9c00…`, project tree `16561f3…` — carrying the family's completed project-dashboard UI (dark-first tokens v2, de-tabbed sidebar shell with in-place navigation, six redesigned views, navigation guards, held performance budgets) into this package byte-identically (4156dfa). Host embedding, chat handoff, and wake stay unobserved; host readiness stays pending; the `LAZYZCODE_MCP_MODE` gate is unchanged. See RELEASE_NOTES.md "Completion pass (2026-10-19)".
+
+## [1.4.0] - 2026-10-07 — project platform
+
+Adopt the family's persistent project platform through the ZCode-native adapter: the vendored `plugins/lazyzcode/shared/project/` family re-pins to tree `1feb5646…` (source revision `537f393`; its README no longer links files the family selection excludes and its CLI entry guard resolves symlinked invocation paths instead of silently no-oping), while ZCode's transactions, bounded producers, verifier publication, and MCP mode gate remain the owning surfaces. Complete the capability record with the three exercised project keys — `project_platform`, `project_source_editing`, and `project_telemetry`, each `available` exactly where the port gate exercised it — and add the no-observed-host-adoption assertion to the project-adapter suite (mutation-proven). The project context summary gains the explicit git-observation boundary: the vendored collectors are byte-pinned but wired to no ZCode-exposed route, and commit links stay run-side (`repo_head`/`content_revision`). Host embedding, chat handoff, and wake remain unobserved; host readiness stays pending. See RELEASE_NOTES.md.
+
+## [1.4.0] - 2026-10-05
+
+Historical dashboard introduction: vendor the family's shared dashboard core and document the ZCode-native adapter: an authenticated loopback service behind `cli.mjs start|status|open|stop`, a browser UI with Work/Verification/Plan-edit views, task inspector, evidence preview and queue planning (queue edits never start work), six status-dashboard MCP tools (`dashboard_service`, `copy_task_context`) guarded by the v133 direct JSON-RPC regression, an unchanged MCP profile gate (`LAZYZCODE_MCP_MODE`), and honest capability labels (embedding/chat handoff/wake unobserved; host readiness pending). See RELEASE_NOTES.md.
+
 ## [1.3.5] - 2026-10-02
 
 Execute real runtime-floor and provider checks, bound hook input while preserving host refusal contracts, and update current platform guidance. Optional TypeScript LSP requires Node 22.22.2; the core lifecycle retains its separate Node 20 floor. See RELEASE_NOTES.md for patch details and pending native host acceptance.

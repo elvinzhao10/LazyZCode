@@ -2,7 +2,7 @@
 
 ![LazyZCode](lazyzcode-banner.png)
 
-[![Package 1.3.5](https://img.shields.io/badge/package-1.3.5-7ce8d1)](RELEASE_NOTES.md)
+[![Package 1.4.0](https://img.shields.io/badge/package-1.4.0-7ce8d1)](RELEASE_NOTES.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-silver)](LICENSE)
 [![LazySeries family](https://img.shields.io/badge/LazySeries-6_siblings-7ce8d1)](#lazyseries-family)
 
@@ -12,42 +12,85 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-[Platform status](docs/reference/platform-status-2026-10-02.md) · [Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
-[1.3.5 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
+[Platform status](docs/reference/platform-status-2026-10-27.md) · [Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
+[1.4.0 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
 
-> **Current package version: v1.3.5. HOST READINESS: PENDING.** Local checks and release
+> **Current package version: v1.4.0. HOST READINESS: PENDING.** Local checks and release
 > archives prove package behavior; a fresh host session must prove loading,
 > command/skill execution and MCP connections.
 
-## What's in 1.3.5
+## What's in 1.4.0
 
-- Runtime checks execute real package and lifecycle paths; unknown exercises and failed checks cannot report success.
-- Core and optional TypeScript LSP requirements are checked separately, including unsupported runtimes.
-- Hook input is bounded before parsing and stays out of process arguments.
-- Platform guides distinguish current native capabilities, legacy routes and integrations awaiting live acceptance.
+- An authenticated local dashboard with eight destinations: **Overview, Project,
+  Plans, Health, Execution, Git, Evidence and Research**.
+- A project record, editable plans, queue planning and research capture, with
+  source revisions and evidence references visible for review.
+- A run monitor that separates execution progress from verified completion,
+  plus reported token usage, resource activity and retained-run history.
+- A Health inventory of package components, separate from observed host activity.
 
-This is a maintenance release. It includes the workflow foundation introduced
-in the family since v1.3.0 and subsequent reliability work. For Kimi and DeepSeek,
-that describes inherited family behavior, not prior public releases of these
-ports. The details below describe the cumulative v1.3.5 experience; the
-[release notes](RELEASE_NOTES.md) distinguish this patch's fixes from inherited
-features. No new speed, token-saving or cost claim is made.
+The `status-dashboard` MCP server exposes seven tools, including
+`dashboard_service`, `copy_task_context` and typed `project` operations.
 
-| Family milestone | What you get in the current package |
-| --- | --- |
-| v1.3.0 foundation | Natural-language entry, editable plans, durable decisions and verification tiers. |
-| v1.3.1 reliability | Clearer execution intent, safer isolation and evidence comparisons. |
-| v1.3.2 handoff | Revision-bound verification-report contracts; generic completion APIs have separate limits. |
-| v1.3.3 hardening | Host-specific hook, MCP and publication repairs. |
-| v1.3.4 maintenance | Transactional run integrity, safer lifecycle and native adapter repairs. |
-| v1.3.5 repairs | Real runtime exercises, bounded hooks, dependency updates and current platform guidance. |
+The `LAZYZCODE_MCP_MODE` profile gate remains unchanged; an empty mode defaults
+to orchestrated.
+
+The release builds on the existing planning, decision-memory and verification
+workflows described below. No speed, token-saving or cost improvement is
+claimed. See the [release notes](RELEASE_NOTES.md) for compatibility and upgrade
+boundaries; historical changes remain in `CHANGELOG.md`.
+
+## Browser dashboard (v1.4.0)
+
+After explicit project initialization, the dashboard provides **Overview,
+Project, Plans, Health, Execution, Git, Evidence and Research** in a collapsible
+sidebar. Contextual Details keep the selected item in view; maps support pan,
+zoom and an expanded modal. Theme and density preferences persist, and
+navigation guards protect unsaved edits.
+
+Execution progress and verification are separate. Token charts, resource
+activity and retained-run comparisons show available records; missing usage
+remains unknown. Health lists package Skills, commands, agents, hooks and MCP
+components without treating that inventory as host activation.
+
+Plans and research expose source revisions and evidence references. A hash
+reference does not preserve an immutable copy of its source or verify a
+finding. Source edits require authentication, the correct native project
+binding and a matching revision; stale edits conflict instead of overwriting
+newer work. Queue edits never start execution.
+
+The service binds to authenticated loopback, and each repository keeps its own
+project state. Browser access, transactional edits, queue planning, context
+copy and observations are package capabilities. Host embedding, chat handoff
+and wake remain unobserved; **HOST READINESS: PENDING** still applies.
+
+The portable dashboard and project cores are pinned in
+`plugins/lazyzcode/shared/dashboard.vendor.json` and
+`plugins/lazyzcode/shared/project.vendor.json`. The
+[documentation index](docs/README.md) covers package architecture and usage.
+
+### Dashboard gallery
+
+Recorded demo data served by the native local dashboard; not a live host-session receipt.
+
+**Overview** — execution and verification progress, recorded activity and the project map.
+
+![LazyZCode dashboard Overview with recorded demo data](docs/images/dashboard-overview.jpg)
+
+**Plans** — plan records, source context and revision-aware review.
+
+![LazyZCode dashboard Plans with recorded demo data](docs/images/dashboard-plans.jpg)
+
+**Health** — package component inventory, separate from observed host activity.
+
+![LazyZCode dashboard Health with recorded demo data](docs/images/dashboard-health.jpg)
 
 ### Just ask, or use a command — both work
 
 Two entry routes converge on the same execution authority and gates:
 
 - **Natural language**: describe the work plainly — "Fix the typo in the
-  welcome label" — and the smallest sufficient workflow is selected and run.
+  welcome label" — and the smallest sufficient workflow is selected; execution requires a verified host route.
 - **Explicit commands**: `/lazy-ulw-plan <idea>` builds a new plan, and
   `/lazy-start-work <plan>` executes a known plan. Same authority, same gates.
 
@@ -212,6 +255,9 @@ safe package checks separate from marketplace and connector changes.
 
 ## Package inventory
 
+These counts describe shipped definitions and declarations, not loaded host
+components.
+
 | Surface | Count | Role |
 | --- | ---: | --- |
 | Skills | 19 | Host-facing workflow policies for planning, execution, review, and verification. |
@@ -233,10 +279,11 @@ acceptance evidence. These packages run independently.
 | [LazyQoder](https://github.com/elvinzhao10/LazyQoder) | Qoder CLI / IDE / app |
 | [LazyZCode](https://github.com/elvinzhao10/LazyZCode) **← you are here** | ZCode |
 | [LazyKimi](https://github.com/elvinzhao10/LazyKimi) | Kimi Code CLI · Kimi Work (experimental) |
-| [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.0-rc.2 |
+| [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.1-rc.3 |
 
 The family shares planning, evidence, decision-memory and completion contracts.
-The first shared verification core is vendored in every package; product adapters keep host setup and permissions explicit. Matching contracts do not make host capabilities interchangeable. In particular,
+The first shared verification core and a shared dashboard core are vendored in
+every package; product adapters keep host setup and permissions explicit. Matching contracts do not make host capabilities interchangeable. In particular,
 Kimi Work remains experimental for LazyKimi, and DeepSeek's synthesized events
 are not native hooks. Use each sibling's host guide before installation.
 

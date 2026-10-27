@@ -1,5 +1,16 @@
 # LazyZCode Plugin Changelog
 
+## 2026-10-27 platform audit
+
+The status-dashboard server currently lists seven tools including `project`; six MCP servers remain declared. Empty MCP mode defaults to orchestrated. See the [current platform audit](docs/reference/platform-status-2026-10-27.md). Native host readiness remains pending.
+
+## [1.4.0] - Shared dashboard surface and honest capability labels
+
+- Vendor the family's shared dashboard core with hash-pinned metadata; vendored bytes are never edited per package.
+- Add the ZCode-native dashboard-host adapter: authenticated loopback service, browser entry, transactional edits with exact-revision consumption and distinct verifier proof, queue persistence without execution.
+- Historically extended status-dashboard MCP to six tools with `dashboard_service` and `copy_task_context`; the v133 direct JSON-RPC regression guards the round trip and safety rejections, and the `LAZYZCODE_MCP_MODE` profile gate is unchanged.
+- Report honest capability labels; embedding, chat handoff and wake stay unobserved and host readiness stays pending.
+
 ## [1.3.5] - Runtime verification and platform clarity
 
 - Execute real runtime-floor exercises and check optional LSP requirements separately.

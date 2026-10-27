@@ -1,6 +1,6 @@
 # Technical architecture guide
 
-The current package version is [v1.3.5](../RELEASE_NOTES.md). Package
+The current package version is [v1.4.0](../RELEASE_NOTES.md). Package
 verification and fresh native-host acceptance are separate; host acceptance
 remains pending.
 
@@ -85,3 +85,5 @@ boundary reference](reference/dependency-and-host-boundaries.md).
 For a complete source-family index, including hooks, loop state, helper
 libraries, provider lifecycle, and release checks, read the [runtime subsystem
 reference](reference/runtime-subsystems.md).
+
+Current host review: [ZCode platform status, 2026-10-27](reference/platform-status-2026-10-27.md).

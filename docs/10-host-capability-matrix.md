@@ -4,9 +4,9 @@ LazyZCode deliberately aligns policy and package safety across hosts while keepi
 
 ## Onboarding baseline
 
-## Current v1.3.5 evidence boundary
+## Current v1.4.0 evidence boundary
 
-The current v1.3.5 documentation targets the **ZCode** host; no current
+The current v1.4.0 documentation targets the **ZCode** host; no current
 host activation is claimed. The ZCode plugin marketplace
 route (`zcode-marketplace`) is the default full-plugin route. The
 `manual-skills-mcp-fallback` route is recovery-only and mutually exclusive
@@ -94,7 +94,7 @@ The host adapter differs, but the safety model does not:
 
 - **Host integration:** ZCode decides plugin discovery, connector registration, session lifetime, and event delivery.
 - **State/path:** package run state and receipt-owned tooling roots are local; marketplace directories, plugin data, credentials, and connector state remain host/user-owned.
-- **Inventory:** six local MCP servers are packaged, gated by the `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defers the gate). Optional remote exports and browser work remain separate explicit decisions.
+- **Inventory:** six local MCP servers are packaged, gated by the `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defaults to orchestrated). Optional remote exports and browser work remain separate explicit decisions.
 
 ## Package-built versus host-native behavior
 

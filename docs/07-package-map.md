@@ -44,7 +44,7 @@ The six declarations in `.mcp.json` launch package-local services:
 Each declaration is a recipe for a host. On ZCode, plugin MCP servers
 auto-connect at session start, namespaced `plugin:lazyzcode:<server>`, gated by
 the `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`,
-`orchestrated`, `long-horizon`; empty defers the gate). [07b — MCP lifecycle](07b-mcp-lifecycle.md) follows that boundary in detail.
+`orchestrated`, `long-horizon`; empty defaults to orchestrated). [07b — MCP lifecycle](07b-mcp-lifecycle.md) follows that boundary in detail.
 
 ## Trace one request through the code
 
