@@ -21,84 +21,69 @@ session.
 
 ## What's in 1.4.0
 
-- A shared dashboard core is vendored in the package, with a native ZCode
-  adapter (`plugins/lazyzcode/shared/dashboard-host/`) behind an authenticated
-  loopback service and a browser UI.
-- The status-dashboard MCP server now exposes seven tools: the four status views
-  plus `dashboard_service`, `copy_task_context`, and `project`; the
-  `v133-status-dashboard-mcp-regression.sh` test guards the JSON-RPC behavior.
-- Capability labels are honest: `browser`, `transactional_edits`,
-  `project_queue`, `context_copy` and `observations` are available;
-  `embedding`, `chat_handoff` and `wake` are unobserved; native host readiness
-  stays pending.
-- The MCP profile gate (`LAZYZCODE_MCP_MODE`, orchestrated versus direct) is
-  unchanged by the dashboard surface.
-- The current vendor manifests pin dashboard source `62f3a0de…`
-  (tree `b525d678…`, 85 files) and project source `9b8aa938…`
-  (tree `16561f3…`, 31 files), carrying the
-  family's redesigned project dashboard — dark-first family design language,
-  a de-tabbed shell with a static retractable sidebar and in-place
-  navigation, six redesigned views — alongside this package's per-repo store
-  isolation matrix and the conservatively refreshed capability observations
-  from the ZCode rescan.
-- Runtime checks execute real package and lifecycle paths; unknown exercises and failed checks cannot report success.
-- Core and optional TypeScript LSP requirements are checked separately, including unsupported runtimes.
-- Hook input is bounded before parsing and stays out of process arguments.
-- Platform guides distinguish current native capabilities, legacy routes and integrations awaiting live acceptance.
+- An authenticated local dashboard with eight destinations: **Overview, Project,
+  Plans, Health, Execution, Git, Evidence and Research**.
+- A project record, editable plans, queue planning and research capture, with
+  source revisions and evidence references visible for review.
+- A run monitor that separates execution progress from verified completion,
+  plus reported token usage, resource activity and retained-run history.
+- A Health inventory of package components, separate from observed host activity.
 
-This is a documentation and surface release. It includes the workflow
-foundation introduced in the family since v1.3.0 and subsequent reliability
-work. For Kimi and DeepSeek, that describes inherited family behavior, not
-prior public releases of these ports. The details below describe the cumulative
-v1.4.0 experience; the [release notes](RELEASE_NOTES.md) distinguish this
-release's additions from inherited features. No new speed, token-saving or cost
-claim is made.
+The `status-dashboard` MCP server exposes seven tools, including
+`dashboard_service`, `copy_task_context` and typed `project` operations.
 
-| Family milestone | What you get in the current package |
-| --- | --- |
-| v1.3.0 foundation | Natural-language entry, editable plans, durable decisions and verification tiers. |
-| v1.3.1 reliability | Clearer execution intent, safer isolation and evidence comparisons. |
-| v1.3.2 handoff | Revision-bound verification-report contracts; generic completion APIs have separate limits. |
-| v1.3.3 hardening | Host-specific hook, MCP and publication repairs. |
-| v1.3.4 maintenance | Transactional run integrity, safer lifecycle and native adapter repairs. |
-| v1.3.5 repairs | Real runtime exercises, bounded hooks, dependency updates and current platform guidance. |
-| v1.4.0 dashboard | Shared dashboard core vendored, native adapter with authenticated loopback service, seven-tool status-dashboard MCP, honest capability labels. |
-| v1.4.0 completion | Current pinned families include the redesigned project dashboard (dark-first, sidebar shell, in-place navigation), per-repo isolation and refreshed capability observations. |
+The `LAZYZCODE_MCP_MODE` profile gate remains unchanged; an empty mode defaults
+to orchestrated.
 
-## Shared dashboard surface
+The release builds on the existing planning, decision-memory and verification
+workflows described below. No speed, token-saving or cost improvement is
+claimed. See the [release notes](RELEASE_NOTES.md) for compatibility and upgrade
+boundaries; historical changes remain in `CHANGELOG.md`.
 
-The package ships a portable dashboard core
-(`plugins/lazyzcode/shared/dashboard/`, hash-pinned through
-`dashboard.vendor.json`) and a ZCode-native adapter under
-`plugins/lazyzcode/shared/dashboard-host/`. The adapter is driven by
-`cli.mjs start|status|open|stop` and reports `entry: 'browser'` with the
-capability labels above.
+## Browser dashboard (v1.4.0)
 
-- The service listens on an authenticated loopback address only; the browser UI
-  offers Work, Verification and Plan-edit views, a task inspector, an evidence
-  preview dialog, and queue planning.
-- Queue planning can create, amend and reorder queued plans; queue edits never
-  start work. Edits stay pending until an exact revision is consumed and a
-  distinct independent verifier proves them.
-- After an explicit project init the served UI mounts the family's project
-  dashboard — a tab-free single surface: a static retractable
-  sidebar (WORKSPACE/OBSERVATION destination groups, 56px icon rail,
-  Cmd/Ctrl+B; Cmd/Ctrl+1..7 jump to destinations) navigates in place over a
-  capped history stack, with the dock inspector on the right. The family
-  design language is dark-first (light/dark/system persists) on design
-  tokens v2. Keyboard map: Tab keeps the native ring; `j`/`k` traverse list
-  scopes; `/` focuses the first filter; Escape closes the topmost overlay
-  and returns focus; segmented controls take Arrow/Home/End. Each
-  repository's dashboard stores stay isolated to that repository, and a
-  foreign runtime's writes are refused.
-- The status-dashboard MCP server exposes `dashboard_service` (start, inspect,
-  stop, or return the local browser dashboard entry) and `copy_task_context`
-  (copy a validated native ZCode producer context without executing or
-  consuming it), plus `project` and the four status views. The MCP profile gate
-  (`LAZYZCODE_MCP_MODE`) is unchanged.
-- These are package capabilities. They do not change host readiness: embedding,
-  chat handoff and wake remain unobserved, and **HOST READINESS: PENDING**
-  stays authoritative.
+After explicit project initialization, the dashboard provides **Overview,
+Project, Plans, Health, Execution, Git, Evidence and Research** in a collapsible
+sidebar. Contextual Details keep the selected item in view; maps support pan,
+zoom and an expanded modal. Theme and density preferences persist, and
+navigation guards protect unsaved edits.
+
+Execution progress and verification are separate. Token charts, resource
+activity and retained-run comparisons show available records; missing usage
+remains unknown. Health lists package Skills, commands, agents, hooks and MCP
+components without treating that inventory as host activation.
+
+Plans and research expose source revisions and evidence references. A hash
+reference does not preserve an immutable copy of its source or verify a
+finding. Source edits require authentication, the correct native project
+binding and a matching revision; stale edits conflict instead of overwriting
+newer work. Queue edits never start execution.
+
+The service binds to authenticated loopback, and each repository keeps its own
+project state. Browser access, transactional edits, queue planning, context
+copy and observations are package capabilities. Host embedding, chat handoff
+and wake remain unobserved; **HOST READINESS: PENDING** still applies.
+
+The portable dashboard and project cores are pinned in
+`plugins/lazyzcode/shared/dashboard.vendor.json` and
+`plugins/lazyzcode/shared/project.vendor.json`. The
+[documentation index](docs/README.md) covers package architecture and usage.
+
+### Dashboard gallery
+
+Recorded demo data served by the native local dashboard; not a live host-session receipt.
+
+**Overview** — execution and verification progress, recorded activity and the project map.
+
+![LazyZCode dashboard Overview with recorded demo data](docs/images/dashboard-overview.jpg)
+
+**Plans** — plan records, source context and revision-aware review.
+
+![LazyZCode dashboard Plans with recorded demo data](docs/images/dashboard-plans.jpg)
+
+**Health** — package component inventory, separate from observed host activity.
+
+![LazyZCode dashboard Health with recorded demo data](docs/images/dashboard-health.jpg)
 
 ### Just ask, or use a command — both work
 
@@ -270,6 +255,9 @@ safe package checks separate from marketplace and connector changes.
 
 ## Package inventory
 
+These counts describe shipped definitions and declarations, not loaded host
+components.
+
 | Surface | Count | Role |
 | --- | ---: | --- |
 | Skills | 19 | Host-facing workflow policies for planning, execution, review, and verification. |
@@ -291,7 +279,7 @@ acceptance evidence. These packages run independently.
 | [LazyQoder](https://github.com/elvinzhao10/LazyQoder) | Qoder CLI / IDE / app |
 | [LazyZCode](https://github.com/elvinzhao10/LazyZCode) **← you are here** | ZCode |
 | [LazyKimi](https://github.com/elvinzhao10/LazyKimi) | Kimi Code CLI · Kimi Work (experimental) |
-| [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.0-rc.2 |
+| [LazyDeepSeek](https://github.com/elvinzhao10/LazyDeepSeek) | DeepSeek Harness 0.2.1-rc.3 |
 
 The family shares planning, evidence, decision-memory and completion contracts.
 The first shared verification core and a shared dashboard core are vendored in
