@@ -1,4 +1,7 @@
 import { executeCommand, readInput } from './commands.mjs';
+import { collectPackageHealth } from '../dashboard/adapters/package-health.mjs';
+import { runtimeTelemetry, attachCostHistory } from '../dashboard/adapters/telemetry.mjs';
+import { capabilities } from './capabilities.mjs';
 import { safeRead, protectedServiceArtifact, ServiceError } from './service-files.mjs';
 import { projectSnapshot } from './trusted-projection.mjs';
 import { readZCodeCompletion } from './completion.mjs';
@@ -15,6 +18,15 @@ import { gitDetailModel, metricsDetailModel } from '../dashboard/ui/git-metrics-
 const packageMetadata = createRequire(import.meta.url)('../../tooling/package.json');
 
 export const zcodeAuthority = Object.freeze({
+  readProjectHealth: async () => collectPackageHealth({ runtime: 'LazyZCode', packageVersion: packageMetadata.version, capabilities }),
+  readProjectTelemetry: async (options, actor) => {
+    const project = await readProject({ projectRoot: options.projectRoot, projectId: options.projectId, actor });
+    let run = null; let error = null;
+    try { if (options.runId) run = zcodeAuthority.project(await readInput(options)); }
+    catch (failure) { error = failure.code ?? 'RUN_READ_FAILED'; }
+    return attachCostHistory(runtimeTelemetry(project, run, error), { runtime: 'LazyZCode',
+      readFile: (reference, limit) => safeRead(options.projectRoot, reference, limit) });
+  },
   read: readInput,
   execute: executeCommand,
   project: input => projectSnapshot(input, readZCodeCompletion(input, { packageVersion: packageMetadata.version })),
