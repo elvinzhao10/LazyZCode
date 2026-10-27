@@ -94,7 +94,7 @@ The host adapter differs, but the safety model does not:
 
 - **Host integration:** ZCode decides plugin discovery, connector registration, session lifetime, and event delivery.
 - **State/path:** package run state and receipt-owned tooling roots are local; marketplace directories, plugin data, credentials, and connector state remain host/user-owned.
-- **Inventory:** six local MCP servers are packaged, gated by the `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defers the gate). Optional remote exports and browser work remain separate explicit decisions.
+- **Inventory:** six local MCP servers are packaged, gated by the `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defaults to orchestrated). Optional remote exports and browser work remain separate explicit decisions.
 
 ## Package-built versus host-native behavior
 

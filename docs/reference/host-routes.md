@@ -99,7 +99,7 @@ root is the directory that contains `marketplace.json`.
 - 6 MCP servers auto-connected from the plugin `.mcp.json`, namespaced
   `plugin:lazyzcode:<server>`, gated by the `mcp_mode` plugin user setting
   (`LAZYZCODE_MCP_MODE`: `direct`, `assisted`, `planned`, `orchestrated`,
-  `long-horizon`; empty defers the profile gate).
+  `long-horizon`; empty defaults to orchestrated).
 
 ZCode has no rules-injection mechanism and no daemon/serve/prewarm CLI.
 Project memory is `AGENTS.md` (workspace scope, plus `~/.zcode/AGENTS.md` for

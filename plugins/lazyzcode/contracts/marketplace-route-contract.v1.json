@@ -10,7 +10,7 @@
   "artifacts": {
     "marketplace.json": "2bd94acbc3182ba92ccd76d96b1a9061403549a27bb430f7e710e9627018b5bb",
     "plugins/marketplace.json": "a2783798a69542e83fbc1f92c05dac566a5c7c7090ec0920dde4e016ac099d58",
-    "plugins/lazyzcode/.zcode-plugin/plugin.json": "80d5ac0f376442ce1337cc4ac207e6bca0e380efb3a0021a63f82352a3dedab5"
+    "plugins/lazyzcode/.zcode-plugin/plugin.json": "13dc99e56c6a3c85d59820270ff0a029deda42ac8a02ad9776ef9bbe0280aaf1"
   },
   "payload": {
     "method": "Deterministic inventory: walk each payload root (skills, commands, agents, hooks, mcp) recursively from the plugin root; reject symlinks and non-regular files; skip entries named .gitkeep, __pycache__ directories, and .pyc bytecode; include only regular files with st_nlink == 1. Record {path, sha256} per file with the POSIX path relative to plugins/lazyzcode and sha256 over the file bytes. Append policy.files entries the same way. Sort records byte-wise (Buffer.compare) by path. file_count is the record count; inventory_sha256 is the SHA-256 of the UTF-8 JSON serialization of the sorted record array (JSON.stringify with default separators, no whitespace, insertion order = sorted path order).",
@@ -25,7 +25,7 @@
       ".mcp.json"
     ],
     "file_count": 74,
-    "inventory_sha256": "051e9531564143424439ea16030ea383b4cdb90cd6e125f128130fe28b899f0f"
+    "inventory_sha256": "9771a2ad466a6f95346d66b4724e8065929d502614894f9f936d9774a72412f4"
   },
   "default_routes": {
     "zcode": "zcode-marketplace",

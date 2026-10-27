@@ -12,7 +12,7 @@ LazyZCode helps you use structured, evidence-based workflows in **ZCode**. It pr
 and guidance; a host is only considered ready after it is observed in a fresh
 session.
 
-[Platform status](docs/reference/platform-status-2026-10-02.md) · [Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
+[Platform status](docs/reference/platform-status-2026-10-27.md) · [Get started](#recommended-install-with-ai-help) · [Host routes](#choose-one-route) ·
 [1.4.0 notes](RELEASE_NOTES.md) · [Family](#lazyseries-family) · [Docs](docs/)
 
 > **Current package version: v1.4.0. HOST READINESS: PENDING.** Local checks and release
@@ -24,8 +24,8 @@ session.
 - A shared dashboard core is vendored in the package, with a native ZCode
   adapter (`plugins/lazyzcode/shared/dashboard-host/`) behind an authenticated
   loopback service and a browser UI.
-- The status-dashboard MCP server now exposes six tools: the four status views
-  plus `dashboard_service` and `copy_task_context`; the
+- The status-dashboard MCP server now exposes seven tools: the four status views
+  plus `dashboard_service`, `copy_task_context`, and `project`; the
   `v133-status-dashboard-mcp-regression.sh` test guards the JSON-RPC behavior.
 - Capability labels are honest: `browser`, `transactional_edits`,
   `project_queue`, `context_copy` and `observations` are available;
@@ -33,8 +33,9 @@ session.
   stays pending.
 - The MCP profile gate (`LAZYZCODE_MCP_MODE`, orchestrated versus direct) is
   unchanged by the dashboard surface.
-- The completion pass repinned both vendored families at `bb696092`
-  (dashboard tree `e55a9c00…`, project tree `16561f3…`), carrying the
+- The current vendor manifests pin dashboard source `62f3a0de…`
+  (tree `b525d678…`, 85 files) and project source `9b8aa938…`
+  (tree `16561f3…`, 31 files), carrying the
   family's redesigned project dashboard — dark-first family design language,
   a de-tabbed shell with a static retractable sidebar and in-place
   navigation, six redesigned views — alongside this package's per-repo store
@@ -61,8 +62,8 @@ claim is made.
 | v1.3.3 hardening | Host-specific hook, MCP and publication repairs. |
 | v1.3.4 maintenance | Transactional run integrity, safer lifecycle and native adapter repairs. |
 | v1.3.5 repairs | Real runtime exercises, bounded hooks, dependency updates and current platform guidance. |
-| v1.4.0 dashboard | Shared dashboard core vendored, native adapter with authenticated loopback service, six-tool status-dashboard MCP, honest capability labels. |
-| v1.4.0 completion | Repinned families at `bb696092` with the redesigned project dashboard (dark-first, sidebar shell, in-place navigation), per-repo isolation and refreshed capability observations. |
+| v1.4.0 dashboard | Shared dashboard core vendored, native adapter with authenticated loopback service, seven-tool status-dashboard MCP, honest capability labels. |
+| v1.4.0 completion | Current pinned families include the redesigned project dashboard (dark-first, sidebar shell, in-place navigation), per-repo isolation and refreshed capability observations. |
 
 ## Shared dashboard surface
 
@@ -93,7 +94,7 @@ capability labels above.
 - The status-dashboard MCP server exposes `dashboard_service` (start, inspect,
   stop, or return the local browser dashboard entry) and `copy_task_context`
   (copy a validated native ZCode producer context without executing or
-  consuming it) alongside the four status views. The MCP profile gate
+  consuming it), plus `project` and the four status views. The MCP profile gate
   (`LAZYZCODE_MCP_MODE`) is unchanged.
 - These are package capabilities. They do not change host readiness: embedding,
   chat handoff and wake remain unobserved, and **HOST READINESS: PENDING**
@@ -104,7 +105,7 @@ capability labels above.
 Two entry routes converge on the same execution authority and gates:
 
 - **Natural language**: describe the work plainly — "Fix the typo in the
-  welcome label" — and the smallest sufficient workflow is selected and run.
+  welcome label" — and the smallest sufficient workflow is selected; execution requires a verified host route.
 - **Explicit commands**: `/lazy-ulw-plan <idea>` builds a new plan, and
   `/lazy-start-work <plan>` executes a known plan. Same authority, same gates.
 

@@ -85,3 +85,5 @@ boundary reference](reference/dependency-and-host-boundaries.md).
 For a complete source-family index, including hooks, loop state, helper
 libraries, provider lifecycle, and release checks, read the [runtime subsystem
 reference](reference/runtime-subsystems.md).
+
+Current host review: [ZCode platform status, 2026-10-27](reference/platform-status-2026-10-27.md).

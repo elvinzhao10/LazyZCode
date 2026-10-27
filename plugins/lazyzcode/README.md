@@ -443,3 +443,7 @@ that a host loaded it. Use the local `skills/` import plus manual MCP only as a
 receipt-scoped recovery route. The repository-local `.zcode/` directory is
 host-managed development state and is intentionally not part of the release
 package._
+
+## Current platform audit
+
+The 2026-10-27 ZCode audit in the package reference documents the current host contracts, seven status-dashboard tools, vendor provenance and acceptance limits. The package declares six MCP servers; native activation remains pending.

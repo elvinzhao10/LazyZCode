@@ -70,7 +70,7 @@ same file in the manifest causes a duplicate-hook diagnostic.
   `CWD`/`CLAUDE_PROJECT_DIR` env by every MCP launcher).
 - `${user_config.mcp_mode}` — plugin user setting surfaced as
   `LAZYZCODE_MCP_MODE`; the MCP profile gate (`direct`, `assisted`, `planned`,
-  `orchestrated`, `long-horizon`; empty defers the gate).
+  `orchestrated`, `long-horizon`; empty defaults to orchestrated).
 - Configuration-file MCP servers do not expand template variables; plugin
   declarations do.
 

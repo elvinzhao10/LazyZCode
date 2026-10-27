@@ -68,8 +68,8 @@ Triggers: `update LazyZCode`, `upgrade the plugin`, `refresh the install`.
    - All six MCP connections are visible: `run-ledger`, `verification`,
      `status-dashboard`, `context-graph`, `code-intel`, `docs`.
    - Hooks are active with the plugin enabled.
-   - The `mcp_mode` plugin user setting is visible (empty defers the profile
-     gate, which defaults to `orchestrated`).
+   - The `mcp_mode` plugin user setting is visible (empty defaults to
+     `orchestrated`).
 8. **Report readiness honestly.** `PACKAGE READINESS: full` only from the
    checks in step 6; `HOST READINESS: PENDING` until the fresh-session
    observation in step 7 exists. Package checks never prove host activation.

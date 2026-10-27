@@ -75,8 +75,8 @@ Triggers: `onboard`, `install LazyZCode`, `set up the plugin`, `verify the insta
      `status-dashboard`, `context-graph`, `code-intel`, `docs`.
    - Hooks are active (the plugin's hook events fire when the plugin is
      enabled).
-   - The `mcp_mode` plugin user setting is visible (empty defers the profile
-     gate, which defaults to `orchestrated`).
+   - The `mcp_mode` plugin user setting is visible (empty defaults to
+     `orchestrated`).
 6. **Report readiness honestly.** Print exactly:
    - `PACKAGE READINESS: full` — only if step 2 passed.
    - `HOST READINESS: PENDING` — until a fresh session has observed one real

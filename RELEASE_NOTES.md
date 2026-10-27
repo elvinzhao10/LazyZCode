@@ -4,7 +4,15 @@ A documentation and surface release across the LazySeries siblings. It vendors
 the family's shared dashboard core and documents the ZCode-native adapter
 without changing host-readiness boundaries or the MCP profile gate.
 
-## Completion pass (2026-10-19)
+## Current audit (2026-10-27)
+
+The current dashboard vendor manifest records source `62f3a0de…`, tree
+`b525d678…` and 85 files; the project manifest records source `9b8aa938…`,
+tree `16561f3…` and 31 files. The status-dashboard server lists seven tools,
+including `project`. Empty MCP mode defaults to orchestrated. ZCode 3.16.3 is the latest release reviewed; native
+activation remains unobserved. See the [platform audit](docs/reference/platform-status-2026-10-27.md).
+
+## Completion pass (2026-10-19; historical)
 
 A scoped completion pass over the 1.4.0 surfaces; every bullet cites the
 branch commit that delivers it.
@@ -65,11 +73,11 @@ branch commit that delivers it.
   covered by an adapter suite: edits stay pending until an exact revision is
   consumed, a distinct independent verifier proves them, queue persistence
   never executes work, and the owned loopback lifecycle emits signed receipts.
-- The status-dashboard MCP server exposes six tools: the four status views
+- The status-dashboard MCP server exposes seven tools: the four status views
   plus `dashboard_service` (start, inspect, stop, or return the local browser
   dashboard entry) and `copy_task_context` (copy a validated native ZCode
-  producer context without executing or consuming it). The
-  `v133-status-dashboard-mcp-regression.sh` test drives the JSON-RPC behavior
+  producer context without executing or consuming it), plus `project` for
+  typed project actions. The `v133-status-dashboard-mcp-regression.sh` test drives the JSON-RPC behavior
   directly, and the MCP profile gate (`LAZYZCODE_MCP_MODE`) is unchanged.
 - The dashboard-host adapter suite, MCP test script, v133 direct regression,
   marketplace route contract, publication regression, package verification,
@@ -92,9 +100,8 @@ Verification and Plan-edit views, a task inspector, an evidence preview
 dialog, and queue planning; queue edits can create, amend and reorder queued
 plans, and queue edits never start work.
 
-See [the dated platform audit](docs/reference/platform-status-2026-10-02.md).
-That snapshot records the v1.3.5 review date and is preserved as a historical
-document; it does not describe the dashboard surface.
+See [the dated platform audit](docs/reference/platform-status-2026-10-27.md).
+That snapshot records the current package audit and distinguishes documented host capabilities from observation.
 **HOST READINESS: PENDING** until the selected current client demonstrates
 discovery, skill/command execution, relevant hooks and MCP connections.
 
@@ -151,7 +158,7 @@ Persistent LSP sessions and event-ledger compaction remain future measured work.
 
 ZCode's event and output contracts stay host-specific. Do not infer sibling hook support or manufacture unsupported events from package parity.
 
-See [the dated platform audit](docs/reference/platform-status-2026-10-02.md).
+See [the dated platform audit](docs/reference/platform-status-2026-10-27.md).
 **HOST READINESS: PENDING** until the selected current client demonstrates
 discovery, skill/command execution, relevant hooks and MCP connections.
 Official feature documentation and package tests are separate evidence.
