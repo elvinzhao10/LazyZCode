@@ -105,7 +105,7 @@ assert len(by_id) == 12, "duplicate reply ids"
 assert by_id[1]["result"]["serverInfo"]["name"] == "status-dashboard", by_id[1]
 print("PASS: initialize reports the status-dashboard server")
 tools = {tool["name"]: tool for tool in by_id[2]["result"]["tools"]}
-assert "dashboard_service" in tools and "copy_task_context" in tools, sorted(tools)
+assert set(tools) == {"show_run_status", "show_task_graph", "show_verification_matrix", "show_pending_approvals", "dashboard_service", "copy_task_context", "project"}, sorted(tools)
 assert tools["dashboard_service"]["inputSchema"]["required"] == ["action", "project_id", "run_id"], tools["dashboard_service"]
 assert tools["copy_task_context"]["inputSchema"]["required"] == [
     "project_id", "run_id", "parent_task_id", "task_id", "criterion_id",

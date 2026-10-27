@@ -24,8 +24,8 @@ for catalog, custom-model, cost, and host-observation boundaries.
 
 The local foundation can use pinned ripgrep, ast-grep, and an LSP provider in a
 private, receipt-owned tooling root. JavaScript/TypeScript uses
-`typescript-language-server@5.3.0` with `typescript@6.0.3`; Python uses
-`basedpyright@1.39.10`. The LSP bridge offers only advertised read-only
+`typescript-language-server@6.0.1` with `typescript@6.0.3`; Python uses
+`basedpyright@1.40.1`. TypeScript 6 retains the `tsserver` API required by this LSP bridge; TypeScript 7 uses a different native server. The LSP bridge offers only advertised read-only
 operations such as definitions, references, symbols, hover/type information,
 and diagnostics—never rename.
 
@@ -118,7 +118,7 @@ capabilities (LSP, CodeGraph) are off until explicitly needed:
 ## CodeGraph is deliberately separate
 
 CodeGraph is a local architecture capability, pinned to
-`@colbymchenry/codegraph@1.6.0`. It is disabled by default; the broker does not
+`@colbymchenry/codegraph@1.6.2`. It is disabled by default; the broker does not
 create an index, start a process, register MCP, or enable telemetry. Use the
 explicit `codegraph-doctor`, `codegraph-install`, `codegraph-init`, and
 `codegraph-enable` lifecycle only after choosing the project and tooling roots.

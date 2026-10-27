@@ -118,6 +118,34 @@
       "count": 6,
       "classification": "source-identity",
       "reason": "Dated official-source platform comparison names actual sibling packages and native hosts; exact file and count scope."
+    },
+    {
+      "path": "plugins/lazyzcode/shared/dashboard/ui/DESIGN.md",
+      "text": "LazyQoder",
+      "count": 2,
+      "classification": "source-identity",
+      "reason": "Shared design guide names all six family products and their accents."
+    },
+    {
+      "path": "plugins/lazyzcode/shared/dashboard/ui/tokens.css",
+      "text": "LazyQoder",
+      "count": 3,
+      "classification": "stable-machine-id",
+      "reason": "Shared theme selectors identify the Qoder family member."
+    },
+    {
+      "path": "plugins/lazyzcode/shared/project/artifacts/index.mjs",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "stable-machine-id",
+      "reason": "Shared artifact routing preserves the Qoder runtime ID."
+    },
+    {
+      "path": "plugins/lazyzcode/shared/project/contract.mjs",
+      "text": "LazyQoder",
+      "count": 1,
+      "classification": "stable-machine-id",
+      "reason": "Shared project contract lists all family runtime IDs."
     }
   ],
   "stableIdentityFiles": [

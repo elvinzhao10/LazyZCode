@@ -25,7 +25,7 @@ below cover both LazySeries-wide concepts and the ZCode host boundary.
 | **Package-built capability** | Behavior implemented and shipped by LazyZCode, such as scripts, receipts, hook policy, or a local MCP server. |
 | **Host-native capability** | Behavior owned by ZCode, such as discovery, session lifecycle, marketplace state, hook delivery, and credential storage. |
 | **Base MCP declaration** | A package-shipped launcher entry; it becomes a usable endpoint only when a host starts and connects it. |
-| **Profile gate** | The `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defers the gate) that decides which MCP tools a server exposes for the task's risk tier. |
+| **Profile gate** | The `LAZYZCODE_MCP_MODE` profile (`direct`, `assisted`, `planned`, `orchestrated`, `long-horizon`; empty defaults to orchestrated) that decides which MCP tools a server exposes for the task's risk tier. |
 | **Tooling dependency** | A pinned local fallback placed only in a receipt-owned root, not a dependency added to the target project. |
 
 Use [workflow playbooks](../04-workflow-playbooks.md) to choose a workflow,

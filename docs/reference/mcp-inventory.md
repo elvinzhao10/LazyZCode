@@ -8,8 +8,8 @@ fresh session.
 
 All six servers share one profile gate: the plugin user setting `mcp_mode`
 (exposed to each server as `LAZYZCODE_MCP_MODE`). Allowed values are `direct`,
-`assisted`, `planned`, `orchestrated`, and `long-horizon`; an empty value
-defers the profile gate, and the gate — not the declaration — decides which
+`assisted`, `planned`, `orchestrated`, and `long-horizon`; an empty or unset value
+defaults to `orchestrated`, and the gate — not the declaration — decides which
 tools a server exposes for the task's risk tier.
 
 | Declaration | Local role | Important boundary |
@@ -30,6 +30,11 @@ capabilities live in the receipt-owned tooling layer, not in `.mcp.json`.
 
 For declaration-to-removal sequence, read [MCP lifecycle](../07b-mcp-lifecycle.md).
 For host routes, read [host routes](host-routes.md).
+
+The orchestrated status-dashboard server lists seven tools: `show_run_status`,
+`show_task_graph`, `show_verification_matrix`, `show_pending_approvals`,
+`dashboard_service`, `copy_task_context`, and `project`. This is a tool count,
+not a seventh MCP server; deferred profiles may expose a different set.
 
 ## Server implementation and data boundary
 

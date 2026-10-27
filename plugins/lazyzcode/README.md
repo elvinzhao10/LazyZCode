@@ -283,9 +283,12 @@ dependencies or guess commands; a timed-out selected check exits `124`.
 Automatic workflow selection chooses the smallest sufficient existing workflow
 from task risk and complexity. It is selection-only until host readiness is
 observed: package output must not claim native workflow loading or host
-dispatch. The compact task packet is 1,637 bytes rather than 2,285 bytes
-(648 bytes / 28.36% smaller); required safety, approval, evidence, review, and
-completion gates are unchanged.
+dispatch. ZCode documents native dynamic workflows behind the `/workflow`
+entry point (official changelog v3.14.0, 2026-09-19); that surface is treated
+as documented-untested, so selection remains package-side until a fresh
+session observes native loading or dispatch. The compact task packet is 1,637
+bytes rather than 2,285 bytes (648 bytes / 28.36% smaller); required safety,
+approval, evidence, review, and completion gates are unchanged.
 
 The installed package carries the versioned automatic-tooling contract and its
 provider-policy adapter. Start with an offline status check or create the
@@ -344,9 +347,9 @@ bash scripts/lazyzcode-tooling.sh lsp-uninstall \
   --target "/absolute/project" --tooling-root "/absolute/lazyzcode-lsp-tools"
 ```
 
-The locked TS/JS provider is `typescript-language-server@5.3.0` with
-`typescript@6.0.3`; it requires Node.js 20 or newer. The locked Python
-provider is `basedpyright@1.39.10`. Missing, unsupported, and incompatible
+The locked TS/JS provider is `typescript-language-server@6.0.1` with
+`typescript@6.0.3`; it requires Node.js 22.22.2 or newer. The locked Python
+provider is `basedpyright@1.40.1`. Missing, unsupported, and incompatible
 providers are non-blocking readiness states. No target manifest, lockfile,
 source file, global path, or host-managed configuration is modified.
 
@@ -357,7 +360,7 @@ cross-file relationship questions. It is disabled by default. LazyZCode keeps
 `context-graph` available as a clearly labeled grep-based heuristic fallback;
 it is not represented as semantic CodeGraph analysis.
 
-CodeGraph is pinned to `@colbymchenry/codegraph@1.6.0` and can only be
+CodeGraph is pinned to `@colbymchenry/codegraph@1.6.2` and can only be
 provisioned in an explicit empty caller-owned tooling root. The lifecycle does
 not invoke upstream `codegraph install` or `codegraph uninstall`, download a
 fallback platform binary, enable CodeGraph telemetry, or change host MCP
@@ -440,3 +443,7 @@ that a host loaded it. Use the local `skills/` import plus manual MCP only as a
 receipt-scoped recovery route. The repository-local `.zcode/` directory is
 host-managed development state and is intentionally not part of the release
 package._
+
+## Current platform audit
+
+The 2026-10-27 ZCode audit in the package reference documents the current host contracts, seven status-dashboard tools, vendor provenance and acceptance limits. The package declares six MCP servers; native activation remains pending.

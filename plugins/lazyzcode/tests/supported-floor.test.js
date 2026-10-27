@@ -77,3 +77,47 @@ test('provider declares a runtime floor compatible with its locked server', asyn
   assert.equal(supported, true);
   assert.equal(lock.packages[''].engines.node, manifest.engines.node);
 });
+
+test('LSP commands enforce the locked TypeScript provider runtime floor', () => {
+  const os = require('node:os');
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'lazyzcode-lsp-floor-'));
+  try {
+    const target = fs.realpathSync(temporary);
+    const bin = path.join(target, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(target, 'tsconfig.json'), '{}');
+    const script = path.join(root, 'scripts/lazyzcode-tooling.sh');
+    for (const [version, expected] of [['20.0.0', 'incompatible'], ['22.22.1', 'incompatible'], ['22.22.2', 'missing'], ['24.0.0', 'missing']]) {
+      // The fake node evaluates the actual predicate using a selected version.
+      const fake = `#!/bin/sh\nexec '${process.execPath}' -p "\$(printf '%s' \"$2\" | sed 's/process.versions.node/\"${version}\"/g')"\n`;
+      fs.writeFileSync(path.join(bin, 'node'), fake, { mode: 0o755 });
+      for (const command of expected === 'incompatible' ? ['lsp-status', 'lsp-install'] : ['lsp-status']) {
+        const result = spawnSync('bash', [script, command, '--target', target, '--tooling-root', path.join(target, 'tooling')], {
+          encoding: 'utf8', env: { ...process.env, PATH: `${bin}:/usr/bin:/bin` },
+        });
+        assert.equal(result.status, 0, result.stderr);
+        assert.match(result.stdout, new RegExp(`STATE: ${expected}`), `${version} ${command}: ${result.stdout}`);
+      }
+    }
+  } finally {
+    fs.rmSync(temporary, { recursive: true, force: true });
+  }
+});
+
+test('LSP fallback metadata agrees with locked provider manifests', () => {
+  const read = (file) => JSON.parse(fs.readFileSync(path.join(root, 'tooling', file), 'utf8'));
+  const registry = read('capabilities.json').capabilities.semantic_navigation;
+  const ts = read('lsp/typescript/package.json').dependencies;
+  const python = read('lsp/python/package.json').dependencies;
+  assert.deepEqual(registry[0].fallback_packages, [`typescript-language-server@${ts['typescript-language-server']}`, `typescript@${ts.typescript}`]);
+  assert.deepEqual(registry[1].fallback_packages, [`basedpyright@${python.basedpyright}`]);
+});
+
+test('locked TypeScript provider supplies the tsserver API used by the language server', () => {
+  // Given the package-owned TypeScript dependency resolved in the lockfile.
+  const lock = JSON.parse(fs.readFileSync(path.join(root, 'tooling/lsp/typescript/package-lock.json'), 'utf8'));
+  // When inspecting the compiler's executable contract.
+  const server = lock.packages['node_modules/typescript'].bin.tsserver;
+  // Then it supplies the API bridge required for semantic LSP operations.
+  assert.equal(server, 'bin/tsserver');
+});

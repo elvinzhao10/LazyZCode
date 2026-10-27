@@ -17,7 +17,7 @@
     "mcp_mode": {
       "type": "string",
       "default": "",
-      "description": "MCP profile: direct, assisted, planned, orchestrated, or long-horizon. Empty defers the profile gate."
+      "description": "MCP profile: direct, assisted, planned, orchestrated, or long-horizon. Empty defaults to orchestrated."
     }
   }
 }

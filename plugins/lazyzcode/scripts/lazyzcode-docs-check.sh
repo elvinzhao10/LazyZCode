@@ -112,9 +112,39 @@ check_init_deep_evidence_contract() {
     fi
 }
 
+# Markdown members of a hash-pinned vendor payload are distributed canonical
+# content: their relative links resolve inside the source repository, and this
+# checkout cannot repair them without breaking byte parity with the pinned
+# manifest (the vendor family gate separately verifies those bytes). Link
+# resolution is therefore limited to repository-authored documentation.
+VENDORED_MD=$(python3 - "$PLUGIN_ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+names = []
+for sidecar in ("shared/project.vendor.json", "shared/dashboard.vendor.json"):
+    try:
+        manifest = json.loads((root / sidecar).read_text())
+    except (OSError, ValueError):
+        continue
+    # File paths are relative to the vendored family tree, which shares the
+    # sidecar's name (shared/project.vendor.json -> shared/project).
+    base = root / sidecar[: -len(".vendor.json")]
+    for item in manifest.get("files", []):
+        if item["path"].endswith(".md"):
+            names.append(str(base / item["path"]))
+print("\n".join(names))
+PY
+)
+
 for scan_dir in "${PLUGIN_ROOT}"; do
     [ -d "$scan_dir" ] || continue
     while IFS= read -r -d '' md_file; do
+        if [ -n "$VENDORED_MD" ] && printf '%s\n' "$VENDORED_MD" | grep -Fxq "$md_file"; then
+            continue
+        fi
         file_dir="$(dirname "$md_file")"
         while IFS= read -r link; do
             if echo "$link" | grep -qE '^(https?://|mailto:|#)'; then
