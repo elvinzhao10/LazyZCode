@@ -12,7 +12,7 @@
     "structural_search": [
       {
         "command": "sg",
-        "fallback_package": "@ast-grep/cli@0.45.3",
+        "fallback_package": "@ast-grep/cli@0.51.0",
         "provider_order": ["host", "owned"]
       }
     ],
@@ -22,7 +22,7 @@
         "source_markers": ["js", "jsx", "mjs", "cjs", "ts", "tsx", "mts", "cts", "tsconfig.json", "jsconfig.json"],
         "command": "typescript-language-server",
         "arguments": ["--stdio"],
-        "fallback_packages": ["typescript-language-server@6.0.0", "typescript@7.0.2"],
+        "fallback_packages": ["typescript-language-server@6.0.1", "typescript@6.0.3"],
         "provider_order": ["project", "host", "owned"]
       },
       {
@@ -37,7 +37,7 @@
     "architecture_exploration": [
       {
         "command": "codegraph",
-        "fallback_package": "@colbymchenry/codegraph@1.6.0",
+        "fallback_package": "@colbymchenry/codegraph@1.6.2",
         "provider_order": ["owned"],
         "activation": "explicit",
         "recommend_when": {

@@ -112,3 +112,12 @@ test('LSP fallback metadata agrees with locked provider manifests', () => {
   assert.deepEqual(registry[0].fallback_packages, [`typescript-language-server@${ts['typescript-language-server']}`, `typescript@${ts.typescript}`]);
   assert.deepEqual(registry[1].fallback_packages, [`basedpyright@${python.basedpyright}`]);
 });
+
+test('locked TypeScript provider supplies the tsserver API used by the language server', () => {
+  // Given the package-owned TypeScript dependency resolved in the lockfile.
+  const lock = JSON.parse(fs.readFileSync(path.join(root, 'tooling/lsp/typescript/package-lock.json'), 'utf8'));
+  // When inspecting the compiler's executable contract.
+  const server = lock.packages['node_modules/typescript'].bin.tsserver;
+  // Then it supplies the API bridge required for semantic LSP operations.
+  assert.equal(server, 'bin/tsserver');
+});
