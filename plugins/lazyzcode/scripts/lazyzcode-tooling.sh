@@ -1309,9 +1309,9 @@ typescript_runtime_ready() {
             XDG_CACHE_HOME="$runtime_root/cache" \
             TMPDIR="$runtime_root/tmp" \
             NODE_COMPILE_CACHE="$runtime_root/cache/node-compile-cache" \
-            node -p 'Number(process.versions.node.split(".")[0]) >= 20' 2>/dev/null | grep -Fxq true
+            node -p '(([major, minor, patch]) => major > 22 || (major === 22 && (minor > 22 || (minor === 22 && patch >= 2))))(process.versions.node.split(".").map(Number))' 2>/dev/null | grep -Fxq true
     else
-        env -i PATH="$PATH" node -p 'Number(process.versions.node.split(".")[0]) >= 20' 2>/dev/null | grep -Fxq true
+        env -i PATH="$PATH" node -p '(([major, minor, patch]) => major > 22 || (major === 22 && (minor > 22 || (minor === 22 && patch >= 2))))(process.versions.node.split(".").map(Number))' 2>/dev/null | grep -Fxq true
     fi
 }
 
@@ -1446,7 +1446,7 @@ lsp_status() {
     if [ "$language" = "typescript" ] && ! typescript_runtime_ready; then
         echo "STATE: incompatible"
         echo "LANGUAGE: typescript"
-        echo "REASON: typescript-language-server@5.3.0 requires Node.js 20 or newer"
+        echo "REASON: typescript-language-server 6.x requires Node.js 22.22.2 or newer"
         return 0
     fi
     if provider="$(lsp_provider "$language")"; then
@@ -1471,7 +1471,7 @@ lsp_install() {
     if [ "$language" = "typescript" ] && ! typescript_runtime_ready; then
         echo "STATE: incompatible"
         echo "LANGUAGE: typescript"
-        echo "REASON: typescript-language-server@5.3.0 requires Node.js 20 or newer"
+        echo "REASON: typescript-language-server 6.x requires Node.js 22.22.2 or newer"
         return 0
     fi
     if provider="$(lsp_provider "$language")"; then

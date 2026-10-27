@@ -22,7 +22,7 @@
         "source_markers": ["js", "jsx", "mjs", "cjs", "ts", "tsx", "mts", "cts", "tsconfig.json", "jsconfig.json"],
         "command": "typescript-language-server",
         "arguments": ["--stdio"],
-        "fallback_packages": ["typescript-language-server@5.3.0", "typescript@6.0.3"],
+        "fallback_packages": ["typescript-language-server@6.0.0", "typescript@7.0.2"],
         "provider_order": ["project", "host", "owned"]
       },
       {
@@ -30,7 +30,7 @@
         "source_markers": ["py", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt"],
         "command": "basedpyright-langserver",
         "arguments": ["--stdio"],
-        "fallback_packages": ["basedpyright@1.39.10"],
+        "fallback_packages": ["basedpyright@1.40.1"],
         "provider_order": ["project", "host", "owned"]
       }
     ],
