@@ -1,5 +1,7 @@
 # ZCode platform status — 2026-10-27
 
+Historical snapshot: see [the 2026-10-30 audit](platform-status-2026-10-30.md) for current documentation and compatibility changes.
+
 Package: **LazyZCode 1.4.0**. Official documentation was reviewed on
 2026-10-27; the latest listed host release is **ZCode 3.16.3, 2026-10-23**,
 following 3.16.2 on October 20. This is a documentation and local-package

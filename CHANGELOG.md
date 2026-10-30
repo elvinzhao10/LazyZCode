@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased 1.4.1 — verification, history and scale
+
+The combined former 1.4.1 and 1.4.2 scope is implemented in this development branch. Package metadata and the published baseline remain **1.4.0**; this PR does not publish a release. Live-host acceptance is **deferred by the maintainer as of 2026-10-30**, and remains pending.
+
+- Retain versioned verification scenarios, compare attempts by their source/criterion/plan subject, and promote an observed failure into an unverified regression scenario.
+- Bind rerun review to the exact plan, criterion and captured source. Pending, rejected, stale and used approvals cannot authorize another native attempt; independent verification remains required.
+- Inspect checkpoint/decision history through authenticated, paginated reads. Deduplicate identical runtime events with transactional recovery while retaining the original ledger and failed attempts.
+- Preserve first-review plan bytes, correct legacy review-state updates, and harden owned-process cleanup against PID reuse and exit races.
+- Reduce repeated replay and unnecessary review-source capture in measured local cases. These measurements do not establish whole-task latency, token or cost savings.
+
+The read-only preparation helper no longer prints a fabricated WorkBuddy build. It renders package inputs and leaves host readiness pending. Marketplace registration, installation and a fresh-session receipt remain separate actions.
+
+See the [1.4.1 completion record](docs/verification/1.4.1-completion.md).
+
 ## 2026-10-27 platform audit
 
 Correct current dashboard provenance and the status-dashboard MCP inventory to seven tools, including `project`; retain six server declarations. Correct empty MCP mode guidance to the orchestrated default. Document ZCode 3.16.3 contracts and pending native-host acceptance. No new efficiency claim is made.
