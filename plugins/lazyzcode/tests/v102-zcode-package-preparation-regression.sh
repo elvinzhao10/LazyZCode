@@ -54,6 +54,12 @@ else
     fail 'spaced copied release self-locates from an arbitrary cwd'
 fi
 
+if ! grep -Eq '^OBSERVED_.*_BUILD=' "$TMP/check-first.out"; then
+    pass 'package preparation never fabricates an observed host build'
+else
+    fail 'package preparation never fabricates an observed host build'
+fi
+
 if v102_assert_zcode_plan \
     "$TMP/check-first.out" "$SPACE_RELEASE/plugins/lazyzcode" "$PROJECT_ROOT" "$FIXTURE_HOME"
 then
