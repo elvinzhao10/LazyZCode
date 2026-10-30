@@ -255,7 +255,6 @@ except ValueError as exc:
     raise SystemExit(1)
 PY
 
-printf 'OBSERVED_WORKBUDDY_BUILD=5.2.6\n'
 printf 'MCP_RENDER=ready (6 absolute launchers; cwd, CWD, and CLAUDE_PROJECT_DIR set)\n'
 printf 'PACKAGE_PREPARATION=ready\n'
 printf 'HOST_PREPARATION=not-applied\n'
