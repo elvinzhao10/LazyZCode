@@ -25,7 +25,7 @@
       ".mcp.json"
     ],
     "file_count": 74,
-    "inventory_sha256": "a8fe6a348812d8fc3412ebdb4dc86ff3276070d2a5b49dd67ed12a5d8d5897d1"
+    "inventory_sha256": "9fb0fd24119068e8cb1eb4e8611e3f505dae761b16183e7c51c9409688a27d1b"
   },
   "default_routes": {
     "zcode": "zcode-marketplace",
