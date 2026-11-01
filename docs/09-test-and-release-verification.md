@@ -29,7 +29,7 @@ Package CI coverage runs on the operating systems and Node versions listed in
 the workflows. Plugin discovery, hooks, MCP calls, specialist behavior,
 cancellation, and completion require separate manual observation in the
 selected current host session. The supplied host observations are historical
-macOS reports and do not establish current v1.4.0 readiness.
+macOS reports and do not establish current v1.4.1 readiness.
 
 ## How to read a regression by boundary
 

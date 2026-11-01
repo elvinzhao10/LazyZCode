@@ -1,3 +1,4 @@
+import { queryCheckpointHistory } from '../dashboard/ui/checkpoint-history.mjs';
 import { executeCommand, readInput } from './commands.mjs';
 import { collectPackageHealth } from '../dashboard/adapters/package-health.mjs';
 import { runtimeTelemetry, attachCostHistory } from '../dashboard/adapters/telemetry.mjs';
@@ -29,6 +30,8 @@ export const zcodeAuthority = Object.freeze({
   },
   read: readInput,
   execute: executeCommand,
+  readHistory: async (options, request) => queryCheckpointHistory(await readInput(options), request,
+    async revision => JSON.parse(await safeRead(options.projectRoot, `.lazyzcode/runs/${options.runId}/history/dashboard-${revision}/state.json`))),
   project: input => projectSnapshot(input, readZCodeCompletion(input, { packageVersion: packageMetadata.version })),
   readProject: (options, actor) => readProject({ projectRoot: options.projectRoot, projectId: options.projectId, actor }),
   readProjectSource: (options, actor, sourceId) => readProjectSource(

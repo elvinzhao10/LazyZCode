@@ -1,6 +1,18 @@
 # LazyZCode Plugin
 
-## v1.4.0 installation
+## 1.4.1 release — verification, history and scale
+
+Release **1.4.1** combines the former 1.4.1 and 1.4.2 verification, history and scale scope. Live-host acceptance is **deferred by the maintainer as of 2026-10-30**, and remains pending.
+
+- Retain versioned verification scenarios, compare attempts by their source/criterion/plan subject, and promote an observed failure into an unverified regression scenario.
+- Bind rerun review to the exact plan, criterion and captured source. Pending, rejected, stale and used approvals cannot authorize another native attempt; independent verification remains required.
+- Inspect checkpoint/decision history through authenticated, paginated reads. Deduplicate identical runtime events with transactional recovery while retaining the original ledger and failed attempts.
+- Preserve first-review plan bytes, correct legacy review-state updates, and harden owned-process cleanup against PID reuse and exit races.
+- Reduce repeated replay and unnecessary review-source capture in measured local cases. These measurements do not establish whole-task latency, token or cost savings.
+
+See the [1.4.1 completion and validation record](docs/verification/1.4.1-completion.md) and [usage/contracts](docs/verification/1.4.1-verification-history.md).
+
+## v1.4.1 installation
 
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** and **Git** are recommended. The lifecycle also accepts Node.js LTS 20 for compatibility. Bootstrap `onboard` only
 from `https://github.com/elvinzhao10/LazyZCode.git`, then use
@@ -189,7 +201,7 @@ user-observed host result.
 `scripts/lazyzcode-verify.sh` requires Python 3.10 or newer before it starts
 any Python helper. The canonical `all` suite also requires pytest. When
 `python3` resolves to an older interpreter, it exits
-with `ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.`
+with `ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.11+ and make it available as python3.`
 Set `LAZYZCODE_PYTHON` to an explicit supported interpreter when `python3`
 cannot be updated system-wide.
 
@@ -446,4 +458,4 @@ package._
 
 ## Current platform audit
 
-The 2026-10-27 ZCode audit in the package reference documents the current host contracts, seven status-dashboard tools, vendor provenance and acceptance limits. The package declares six MCP servers; native activation remains pending.
+The 2026-10-30 ZCode audit in the package reference documents the current host contracts, seven status-dashboard tools, vendor provenance and acceptance limits. The package declares six MCP servers; native activation remains pending.

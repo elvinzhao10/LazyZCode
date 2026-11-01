@@ -23,12 +23,12 @@ if [ ! -f "$PACKAGE_SOURCE_ROOT/plugins/marketplace.json" ]; then
         '{' \
         '  "name": "lazyzcode",' \
         '  "plugins": [' \
-        '    {"name": "lazyzcode", "source": "./lazyzcode", "version": "1.4.0"}' \
+        '    {"name": "lazyzcode", "source": "./lazyzcode", "version": "1.4.1"}' \
         '  ]' \
         '}' > "$PACKAGE_SOURCE_ROOT/plugins/marketplace.json"
 fi
 
-SPACE_RELEASE="$TMP/package copies/Lazy Buddy v1.4.0"
+SPACE_RELEASE="$TMP/package copies/Lazy Buddy v1.4.1"
 PROJECT_ROOT="$TMP/consumer projects/Project With Spaces"$'\nHOST_READINESS=ready'
 FIXTURE_HOME="$TMP/Home With Spaces"
 mkdir -p "$(dirname -- "$SPACE_RELEASE")" "$PROJECT_ROOT" "$FIXTURE_HOME/.zcode/plugins"
@@ -52,6 +52,12 @@ if (
     pass 'spaced copied release self-locates from an arbitrary cwd'
 else
     fail 'spaced copied release self-locates from an arbitrary cwd'
+fi
+
+if ! grep -Eq '^OBSERVED_.*_BUILD=' "$TMP/check-first.out"; then
+    pass 'package preparation never fabricates an observed host build'
+else
+    fail 'package preparation never fabricates an observed host build'
 fi
 
 if v102_assert_zcode_plan \

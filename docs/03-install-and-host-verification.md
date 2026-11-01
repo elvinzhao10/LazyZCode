@@ -162,7 +162,7 @@ It prints `HOST_PREPARATION=not-applied`, `HOST_MUTATION=none`, and
 
 Automated package verification is defined by the product CI workflows (Ubuntu
 and macOS jobs). Supplied host observations are historical macOS reports; they
-do not establish a current v1.4.0 host session. A host that has not been
+do not establish a current v1.4.1 host session. A host that has not been
 observed in a fresh session remains **HOST READINESS: PENDING** regardless of
 package evidence.
 The fallback's exact non-mutating six-entry JSON — with absolute

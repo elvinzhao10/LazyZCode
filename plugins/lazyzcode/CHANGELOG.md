@@ -1,5 +1,23 @@
 # LazyZCode Plugin Changelog
 
+## [1.4.1] — 2026-11-01
+
+Prepare the combined verification/history/scale release, native adapter guidance and consistent runtime/MCP identities. See the root release notes and 1.4.1 integration guide. Model-driven host acceptance remains deferred.
+
+### Verification, history and scale
+
+Release **1.4.1** combines the former 1.4.1 and 1.4.2 verification, history and scale scope. Live-host acceptance is **deferred by the maintainer as of 2026-10-30**, and remains pending.
+
+- Retain versioned verification scenarios, compare attempts by their source/criterion/plan subject, and promote an observed failure into an unverified regression scenario.
+- Bind rerun review to the exact plan, criterion and captured source. Pending, rejected, stale and used approvals cannot authorize another native attempt; independent verification remains required.
+- Inspect checkpoint/decision history through authenticated, paginated reads. Deduplicate identical runtime events with transactional recovery while retaining the original ledger and failed attempts.
+- Preserve first-review plan bytes, correct legacy review-state updates, and harden owned-process cleanup against PID reuse and exit races.
+- Reduce repeated replay and unnecessary review-source capture in measured local cases. These measurements do not establish whole-task latency, token or cost savings.
+
+The read-only preparation helper no longer prints a fabricated WorkBuddy build. It renders package inputs and leaves host readiness pending. Marketplace registration, installation and a fresh-session receipt remain separate actions.
+
+See the [1.4.1 completion record](docs/verification/1.4.1-completion.md).
+
 ## 2026-10-27 platform audit
 
 The status-dashboard server currently lists seven tools including `project`; six MCP servers remain declared. Empty MCP mode defaults to orchestrated. See the [current platform audit](docs/reference/platform-status-2026-10-27.md). Native host readiness remains pending.

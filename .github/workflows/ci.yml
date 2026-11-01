@@ -66,6 +66,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Run package verification
         run: bash plugins/lazyzcode/scripts/lazyzcode-verify.sh
+      - name: Shared dashboard and project adapter regressions
+        run: node --test --test-concurrency=2 plugins/lazyzcode/shared/dashboard-host/test/*.test.mjs
       - name: Run publication verification
         run: bash plugins/lazyzcode/tests/publication-regression.sh
 
@@ -91,6 +93,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Run package verification
         run: bash plugins/lazyzcode/scripts/lazyzcode-verify.sh
+      - name: Shared dashboard and project adapter regressions
+        run: node --test --test-concurrency=2 plugins/lazyzcode/shared/dashboard-host/test/*.test.mjs
 
   lifecycle:
     name: Lifecycle regressions (macOS)
@@ -114,6 +118,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Run timing-sensitive lifecycle regressions
         run: bash plugins/lazyzcode/scripts/lazyzcode-verify.sh
+      - name: Shared dashboard and project adapter regressions
+        run: node --test --test-concurrency=2 plugins/lazyzcode/shared/dashboard-host/test/*.test.mjs
 
   language:
     name: Language tests (Node 22)
@@ -139,6 +145,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Run Node and Python suites (includes contracts digest pins)
         run: bash plugins/lazyzcode/scripts/lazyzcode-verify.sh
+      - name: Shared dashboard and project adapter regressions
+        run: node --test --test-concurrency=2 plugins/lazyzcode/shared/dashboard-host/test/*.test.mjs
 
   validate:
     name: Deterministic validation
