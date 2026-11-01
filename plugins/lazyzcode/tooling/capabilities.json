@@ -22,7 +22,7 @@
         "source_markers": ["js", "jsx", "mjs", "cjs", "ts", "tsx", "mts", "cts", "tsconfig.json", "jsconfig.json"],
         "command": "typescript-language-server",
         "arguments": ["--stdio"],
-        "fallback_packages": ["typescript-language-server@6.0.1", "typescript@6.0.3"],
+        "fallback_packages": ["typescript-language-server@6.0.2", "typescript@6.0.3"],
         "provider_order": ["project", "host", "owned"]
       },
       {
