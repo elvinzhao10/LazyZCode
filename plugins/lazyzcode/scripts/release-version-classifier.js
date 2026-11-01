@@ -3,9 +3,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const RELEASE_VERSION = '1.4.0';
-const PREVIOUS_VERSION = '1.3.5';
+const RELEASE_VERSION = '1.4.1';
+const PREVIOUS_VERSION = '1.4.0';
 const VERSION_JSON_PATHS = [
+  ["marketplace.json", ["plugins", 0, "version"]],
+  ["plugins/lazyzcode/contracts/marketplace-route-contract.v1.json", ["version"]],
+  ["plugins/lazyzcode/contracts/lazyzcode-machine-status.v2.schema.json", ["properties", "version", "const"]],
   ['plugins/lazyzcode/.zcode-plugin/plugin.json', ['version']],
   ['plugins/marketplace.json', ['plugins', 0, 'version']],
   ['plugins/lazyzcode/tooling/package.json', ['version']],

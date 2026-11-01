@@ -1,8 +1,8 @@
 # LazyZCode Plugin
 
-## Unreleased 1.4.1 — verification, history and scale
+## 1.4.1 release candidate — verification, history and scale
 
-The combined former 1.4.1 and 1.4.2 scope is implemented in this development branch. Package metadata and the published baseline remain **1.4.0**; this PR does not publish a release. Live-host acceptance is **deferred by the maintainer as of 2026-10-30**, and remains pending.
+The combined former 1.4.1 and 1.4.2 scope is implemented in this development branch. Package metadata is prepared as **1.4.1**; the published baseline remains 1.4.0. This PR does not publish a release. Live-host acceptance is **deferred by the maintainer as of 2026-10-30**, and remains pending.
 
 - Retain versioned verification scenarios, compare attempts by their source/criterion/plan subject, and promote an observed failure into an unverified regression scenario.
 - Bind rerun review to the exact plan, criterion and captured source. Pending, rejected, stale and used approvals cannot authorize another native attempt; independent verification remains required.
@@ -12,7 +12,7 @@ The combined former 1.4.1 and 1.4.2 scope is implemented in this development bra
 
 See the [1.4.1 completion and validation record](docs/verification/1.4.1-completion.md) and [usage/contracts](docs/verification/1.4.1-verification-history.md).
 
-## v1.4.0 installation
+## v1.4.1 installation
 
 **Node.js LTS 24 (recommended) or 22 (supported alternative)** and **Git** are recommended. The lifecycle also accepts Node.js LTS 20 for compatibility. Bootstrap `onboard` only
 from `https://github.com/elvinzhao10/LazyZCode.git`, then use
@@ -201,7 +201,7 @@ user-observed host result.
 `scripts/lazyzcode-verify.sh` requires Python 3.10 or newer before it starts
 any Python helper. The canonical `all` suite also requires pytest. When
 `python3` resolves to an older interpreter, it exits
-with `ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.10+ and make it available as python3.`
+with `ERROR: LazyZCode requires Python 3.10 or newer. Install Python 3.11+ and make it available as python3.`
 Set `LAZYZCODE_PYTHON` to an explicit supported interpreter when `python3`
 cannot be updated system-wide.
 

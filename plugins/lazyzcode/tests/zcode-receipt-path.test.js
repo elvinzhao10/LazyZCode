@@ -24,7 +24,7 @@ function fixture() {
   fs.mkdirSync(projectRoot);
   const paths = prepareProductRoot({ installRoot, product: 'LazyZCode' });
   const commitSha = 'c'.repeat(40);
-  const staged = stageRelease(paths, { sourceRoot, version: '1.4.0', commitSha });
+  const staged = stageRelease(paths, { sourceRoot, version: '1.4.1', commitSha });
   const promoted = promoteRelease(paths, {
     ...staged,
     commitSha,
@@ -32,7 +32,7 @@ function fixture() {
     manifestRelativePath: 'plugins/lazyzcode/.zcode-plugin/plugin.json',
     origin: 'https://github.com/elvinzhao10/LazyZCode.git',
     runtimePath: process.execPath,
-    version: '1.4.0',
+    version: '1.4.1',
   });
   const releaseRoot = path.join(paths.releases, promoted.releaseId);
   const manifest = path.join(releaseRoot, 'plugins/lazyzcode', '.zcode-plugin', 'plugin.json');
@@ -49,7 +49,7 @@ function receipt(f) {
       manifest: 'plugins/lazyzcode/.zcode-plugin/plugin.json',
       manifest_sha256: crypto.createHash('sha256').update(fs.readFileSync(f.manifest)).digest('hex'),
       plugin: 'lazyzcode',
-      version: '1.4.0',
+      version: '1.4.1',
     },
     host: 'zcode',
     build: 'build:current',
