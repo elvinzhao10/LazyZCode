@@ -31,3 +31,6 @@ updates:
     schedule:
       interval: monthly
     labels: [dependencies]
+    ignore:
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
